@@ -1,6 +1,10 @@
-class __main__():
+from document import document
 
-	doc = document()
-	doc.findAllRectangles()
-	doc.filterGraphsFromRectangles()
-	doc.processGraphs()
+def __main__():
+	# This function process all the pdfs in the docList
+	e = document()
+	docList = []
+	docList.append(e)
+	
+	for d in docList:
+		d.process()

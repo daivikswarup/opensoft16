@@ -6,7 +6,7 @@ import numpy
 class page:
 	def __init__(self):
 		self.pdfImage
-		self.graphList = {}
+		self.graphList = []
 
 	def process(self):
 		self.findAllRectangles()
@@ -14,7 +14,7 @@ class page:
 		self.processGraphList()
 
 	def findAllRectangles(self):
-		grayScale=cv2.cvtColor(pdfImage,cv2.COLOR_BGR2GRAY)
+		grayScale=cv2.cvtColor(self.pdfImage,cv2.COLOR_BGR2GRAY)
 		edges = cv2.Canny(grayScale,50,150,apertureSize = 3)
 		maxlines=100;
 		threshhold=1;

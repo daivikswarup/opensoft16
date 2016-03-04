@@ -1,5 +1,7 @@
+from curve import curve
+
 class graph:
-	__init__(self,document,pageno,x1,x2,y1,y1):
+	def __init__(self,document,pageno,x1,x2,y1,y2):
 
 		# reference to the document
 		self.document = document
@@ -36,10 +38,14 @@ class graph:
 
 		self.description = None
 
-	findLabel(self):
+	def findLabel(self):
+		pass
 
-	findMarkings(self):
+	def findMarkings(self):
+		pass
 
-	findColor(self):
+	def findColor(self):
+		pass
 
-	fillData():
+	def fillData():
+		pass
