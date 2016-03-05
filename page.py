@@ -34,8 +34,8 @@ class page:
 		self.filterGraphsFromRectangles()
 		self.processGraphList()
 
-	def findAllRectangles(self):
-		image = cv2.imread(file_name)
+	def findAllRectangles(self,image):
+		#image = cv2.imread(file_name)
 		img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 		cv2.imwrite('mid.jpg',img);
 		kernel = np.ones((2,2), np.uint8)
