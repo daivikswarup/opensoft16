@@ -26,7 +26,7 @@ class graph:
 		self.maxy = 0
 
 		# is it a log graph
-		self.isLog = false
+		self.isLog = False
 
 		#poll
 		self.pollDistance = 0
@@ -38,6 +38,9 @@ class graph:
 
 		self.description = None
 
+		self.image=None
+
+		self.textBoxImages=[]
 	def findLabel(self):
 		pass
 

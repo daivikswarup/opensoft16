@@ -1,10 +1,12 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-import utils
+import graph
 min_length = 0.1
 threshold = 230
 delta=10
+graphThresholdIntensity=230
+tboxThreshhold=20
 class Lines:
 	def __init__(self):
 		self.total_vertical =0
@@ -25,19 +27,20 @@ class Lines:
 
 # This class process a single page of the document
 class page:
-	def __init__(self):
+	def __init__(self,document,pageno):
 		self.pdfImage
 		self.graphList = []
-
+		self.document=document
+		self.pageno=pageno
 	def process(self):
-		self.findAllRectangles()
-		self.filterGraphsFromRectangles()
-		self.processGraphList()
+		rectangles=self.findAllRectangles(pdfImage)
+		self.filterGraphsFromRectangles(rectangles)# populate graphList
+		
 
 	def findAllRectangles(self,image):
 		#image = cv2.imread(file_name)
 		img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-		cv2.imwrite('mid.jpg',img);
+		#cv2.imwrite('mid.jpg',img);
 		kernel = np.ones((2,2), np.uint8)
 		img = cv2.erode(img, kernel, iterations=1)
 	    #ret, img = cv2.threshold(img2gray, 180, 255, cv2.THRESH_BINARY_INV )
@@ -110,28 +113,6 @@ class page:
 			# check intensity 
 			
 			# instantiate the graph objects 
-
-		'''
-		line_img = np.zeros((heigth,width,3),dtype=np.uint8)
-		# for i in range(1,heigth):
-		# 	for j in range(1,width):
-		# 	line_img[i][j][:] = 255		
-		print lines.total_vertical
-		print lines.total_horizontal	
-		for i in range(0,lines.total_vertical):
-			print lines.vert_x[i]
-			print lines.vert_topy[i]
-			print lines.vert_bottomy[i]
-			print '\n'
-			for j in range(lines.vert_topy[i],lines.vert_bottomy[i]):
-				line_img[j][lines.vert_x[i]][:]=255
-		cv2.imwrite('vert.jpg',line_img)
-		for i in range(0,lines.total_horizontal):
-			print lines.hor_y[i]
-			print lines.length('h',i)
-			for j in range(lines.hor_leftx[i],lines.hor_rightx[i]):
-				line_img[lines.hor_y[i]][j][:]=255
-		#cv2.imwrite('final.jpg',line_img)'''
 		#return lines
 		rectangles=[]
 		for i in range(0,lines.total_vertical):
@@ -167,9 +148,52 @@ class page:
 		#print len(rectangles)
 		return rectangles
 
-	def filterGraphsFromRectangles(self):
-		pass
+	def filterGraphsFromRectangles(self,img,rectangles):
+		
+		for r in rectangles:
+			# r is ((row1,col1),(row2,col2)) 1->Top left, 2->Bottom Right
+			graphObj=graph(document,pageno,r[0][0],r[0][1],r[1][0],r[1][1])
+			crop_img = img[r[0][0]:r[1][0], r[0][1]:r[1][1]]
+			graphObj.image=crop_img
+			gray = cv2.cvtColor(crop_img,cv2.COLOR_BGR2GRAY)
+			mask = np.zeros(gray.shape,np.uint8)
+			avg_intensity=cv2.mean(gray,mask = mask)
+			if(avg_intensity<graphThresholdIntensity):
+				continue
+			_,thresh = cv2.threshold(gray,150,255,cv2.THRESH_BINARY_INV) # threshold
+		    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+		    dilated = cv2.dilate(thresh,kernel,iterations = 13) # dilate
+		    contours, hierarchy = cv2.findContours(dilated,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE) # get contours
+		    height = np.size(crop_img, 0)
+		    width = np.size(crop_img, 1)
+		    
+		    index =1
+		    # for each contour found, draw a rectangle around it on original image
+		    flag=True
+		    for contour in contours:
+		        # get rectangle bounding contour
+		        [x,y,w,h] = cv2.boundingRect(contour)
 
+		        # discard areas that are too large
+		        if h>0.9*height and w>0.9*width:
+		           continue
+		        
+		        # discard areas that are too small
+		        if h<height*0.02 or w<width*0.02:
+		            continue
+		        if(x<tboxThreshhold and y+h>crop_img.shape[1]-tboxThreshhold):
+		        	flag=False
+		        	break
+		        # draw rectangle around contour on original image
+		        #cv2.rectangle(image,(x,y),(x+w,y+h),(255,0,255),2)
+
+		        cropped_text = crop_img[y :y +  h , x : x + w]
+		        graphObj.textBoxImages.append(cropped_text)
+		        #s =  'images/crop_' + str(index) + '.jpg' 
+		        #cv2.imwrite(s , cropped)
+		        #index = index + 1
+		    if flag :
+		    	graphList.append(graphObj)
 	def processGraphList(self):
 
 		for g in self.graphList:
