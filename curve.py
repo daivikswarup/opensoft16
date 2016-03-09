@@ -4,3 +4,4 @@ class curve:
 		self.x = []
 		self.y = []
 		self.color
+		self.name
