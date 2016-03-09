@@ -486,6 +486,7 @@ class graph:
         #return graphColor, graphName
         #pass
 
+<<<<<<< HEAD
     def fillData():
         pass
   
@@ -498,6 +499,10 @@ def centroid_histogram(clt):
     hist /= hist.sum()
  
     return hist                                                                 # return the histogram
+=======
+		# is it a log graph
+		self.isLog = False
+>>>>>>> 1919b2d4fde8870d45695236eb2367418646a5ba
 
 
 def plot_colors(hist, n_clusters, centroids):
@@ -586,6 +591,14 @@ def hsv2rgb(h, s, v):
     
 
 
+<<<<<<< HEAD
+=======
+		self.image=None
+
+		self.textBoxImages=[]
+	def findLabel(self):
+		pass
+>>>>>>> 1919b2d4fde8870d45695236eb2367418646a5ba
 
 
 #g1=graph('doc',1,292,57,232,39,'images/d.jpg')
