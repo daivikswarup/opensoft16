@@ -13,7 +13,7 @@ from sklearn.cluster import KMeans
 
 
 class graph:
-    def __init__(self,document,pageno,x2,x4,y2,y4,imagename):
+    def __init__(self,document,pageno,x2,x4,y2,y4):
 
         # reference to the document
         self.document = document
@@ -52,7 +52,7 @@ class graph:
 
 
         
-        self.image=imagename
+        self.image=None
 
         self.textBoxImages=[]
 
@@ -62,7 +62,7 @@ class graph:
     
     # to find x axis label and values
     def findxaxis_width(self,x1,y1,x2,y2):
-        img = IMAGE.open(self.image)
+        img = self.image
         w,h=img.size
         print'img size w=%d h=%d' %(w,h)
         im = img.load()
@@ -86,7 +86,7 @@ class graph:
         return y_array
 
     def findyaxis_width(self,x1,y1,x2,y2):
-        img = IMAGE.open(self.image)
+        img = self.image
         w,h=img.size
         im = img.load()
         x_temp=x1
@@ -120,7 +120,7 @@ class graph:
         x1=self.x4
         y1=self.y2
 
-        img=cv2.imread(self.image)
+        img=self.image
         y=self.findxaxis_width(x1,y1,self.x2,self.y2)
         print y
 
@@ -596,18 +596,18 @@ def hsv2rgb(h, s, v):
 
 
 
-#g1=graph('doc',1,292,57,232,39,'images/d.jpg')
-#g1=graph('doc',1,1309,409,850,290,'images/a.jpg')
-#g1.findLabel()
-#g1.findLabelText()
-#g1.findMarkings()
-#g1.findGradient()
-#print g1.xlabel
-#print g1.ylabel
-#print g1.dx
-#print g1.dy
-#print g1.minx, g1.maxx
-#print g1.miny, g1.maxy
-#print g1.isLog
+'''g1=graph('doc',1,292,57,232,39,'images/d.jpg')
+g1=graph('doc',1,1309,409,850,290,'images/a.jpg')
+g1.findLabel()
+g1.findLabelText()
+g1.findMarkings()
+g1.findGradient()
+print g1.xlabel
+print g1.ylabel
+print g1.dx
+print g1.dy
+print g1.minx, g1.maxx
+print g1.miny, g1.maxy
+print g1.isLog'''
 
 #289,407,855,1309        
