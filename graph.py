@@ -51,7 +51,10 @@ class graph:
         self.description = None             #even description can be obtained by the same method.
 
 
+        
         self.image=imagename
+
+        self.textBoxImages=[]
 
         self.textBoxImages=[]
 
@@ -486,23 +489,23 @@ class graph:
         #return graphColor, graphName
         #pass
 
-<<<<<<< HEAD
+#<<<<<<< HEAD
     def fillData():
         pass
   
    
-def centroid_histogram(clt):   
-    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)                   # grab the number of different clusters and create a histogram
-    (hist, _) = np.histogram(clt.labels_, bins = numLabels)                     # based on the number of pixels assigned to each cluster
-  
-    hist = hist.astype("float")                                                 # normalize the histogram, such that it sums to one
-    hist /= hist.sum()
- 
-    return hist                                                                 # return the histogram
-=======
+    def centroid_histogram(clt):   
+        numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)                   # grab the number of different clusters and create a histogram
+        (hist, _) = np.histogram(clt.labels_, bins = numLabels)                     # based on the number of pixels assigned to each cluster
+      
+        hist = hist.astype("float")                                                 # normalize the histogram, such that it sums to one
+        hist /= hist.sum()
+     
+        return hist                                                                 # return the histogram
+    #=======
 		# is it a log graph
-		self.isLog = False
->>>>>>> 1919b2d4fde8870d45695236eb2367418646a5ba
+		
+#>>>>>>> 1919b2d4fde8870d45695236eb2367418646a5ba
 
 
 def plot_colors(hist, n_clusters, centroids):
@@ -591,28 +594,20 @@ def hsv2rgb(h, s, v):
     
 
 
-<<<<<<< HEAD
-=======
-		self.image=None
-
-		self.textBoxImages=[]
-	def findLabel(self):
-		pass
->>>>>>> 1919b2d4fde8870d45695236eb2367418646a5ba
 
 
 #g1=graph('doc',1,292,57,232,39,'images/d.jpg')
-g1=graph('doc',1,1309,409,850,290,'images/a.jpg')
-g1.findLabel()
-g1.findLabelText()
-g1.findMarkings()
-g1.findGradient()
-print g1.xlabel
-print g1.ylabel
-print g1.dx
-print g1.dy
-print g1.minx, g1.maxx
-print g1.miny, g1.maxy
-print g1.isLog
+#g1=graph('doc',1,1309,409,850,290,'images/a.jpg')
+#g1.findLabel()
+#g1.findLabelText()
+#g1.findMarkings()
+#g1.findGradient()
+#print g1.xlabel
+#print g1.ylabel
+#print g1.dx
+#print g1.dy
+#print g1.minx, g1.maxx
+#print g1.miny, g1.maxy
+#print g1.isLog
 
 #289,407,855,1309        

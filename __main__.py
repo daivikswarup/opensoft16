@@ -3,6 +3,7 @@ import numpy
 import subprocess
 import re
 import cv2
+import matplotlib.pyplot as plt
 
 #requires Ghost Script installed in system Which is default in Ubuntu
 def process(pdf_path="a.pdf",job_number = 1):	#pdf_path is pdf name in current directory and job_number is for processing multiple pdf files
@@ -19,12 +20,34 @@ def process(pdf_path="a.pdf",job_number = 1):	#pdf_path is pdf name in current d
 			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".png"));
 	return img_objects;
 
-def __main__():
+def do(addresses):
 	# This function process all the pdfs in the docList
-	e = document()
-	e.process("a.pdf",0)
+	docList=[]
+	count = 0
+	for address in addresses:
+		e = document()
+		e.process(address,count)
+		docList.append(e)
+		count=count+1
 	#docList = []
 	#docList.append(e)
 	
 	#for d in docList:
 	#	d.process()
+	return docList
+docs=["/home/daivik/opensoft/opensoft16/a.pdf"]
+ret=do(docs)
+count =0
+for doc in ret:
+	print 'Doc'
+	print count
+	count=count+1
+	pgcnt=0
+	for pg in doc.pageList:
+		print 'page'
+		print pgcnt
+		pgcnt=pgcnt+1
+		for gr in pg.graphList:
+			print 'graph'
+			plt.subplot(1,1,1),plt.imshow(gr.image)
+			plt.show()

@@ -29,18 +29,18 @@ class Lines:
 # This class process a single page of the document
 class page:
 	def __init__(self,document,pageno):
-		self.pdfImage
+		self.pdfImage=None
 		self.graphList = []
 		self.document=document
 		self.pageno=pageno
 	def process(self):
-		rectangles=self.findAllRectangles(pdfImage)
+		rectangles=self.findAllRectangles()
 		self.filterGraphsFromRectangles(rectangles)# populate graphList
 		
 
-	def findAllRectangles(self,image):
+	def findAllRectangles(self):
 		#image = cv2.imread(file_name)
-		img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+		img = cv2.cvtColor(self.pdfImage,cv2.COLOR_BGR2GRAY)
 		#cv2.imwrite('mid.jpg',img);
 		kernel = np.ones((2,2), np.uint8)
 		img = cv2.erode(img, kernel, iterations=1)
@@ -149,20 +149,20 @@ class page:
 		#print len(rectangles)
 		return rectangles
 
-	def filterGraphsFromRectangles(self,img,rectangles):
-		
+	def filterGraphsFromRectangles(self,rectangles):
+		img=self.pdfImage
 		for r in rectangles:
 			# r is ((row1,col1),(row2,col2)) 1->Top left, 2->Bottom Right
-			print r
-			graphObj=graph(document,pageno,r[0][0],r[0][1],r[1][0],r[1][1])
+			#print r
+			graphObj=graph(self.document,self.pageno,r[0][0],r[0][1],r[1][0],r[1][1],None)
 			crop_img = img[r[0][0]:r[1][0], r[0][1]:r[1][1]]
 			graphObj.image=crop_img
 			gray = cv2.cvtColor(crop_img,cv2.COLOR_BGR2GRAY)
 			_,thresh = cv2.threshold(gray,180,255,cv2.THRESH_BINARY_INV) # threshold
-			avg_intensity=cv2.countNonZero(thresh)/(1.0*(gray.shape[0]*gray.shape[1]))
-			print avg_intensity
-			if(avg_intensity>graphThresholdIntensity):
-				continue
+			#avg_intensity=cv2.countNonZero(thresh)/(1.0*(gray.shape[0]*gray.shape[1]))
+			#print avg_intensity
+			#if(avg_intensity>graphThresholdIntensity):
+			#	continue
 			kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
 			dilated = cv2.dilate(thresh,kernel,iterations = 15) # dilate
 			#eroded = cv2.dilate(dilated,kernel,iterations = 10) # dilate
@@ -199,11 +199,11 @@ class page:
 			    #s =  'images/crop_' + str(index) + '.jpg' 
 			    #cv2.imwrite(s , cropped)
 			    #index = index + 1
-			print "graph"
+			#print "graph"
 			#plt.subplot(1,1,1),plt.imshow(crop_img)
 			#plt.show()
 			if flag :
-				graphList.append(graphObj)
+				self.graphList.append(graphObj)
 	def processGraphList(self):
 
 		for g in self.graphList:
