@@ -10,15 +10,15 @@ class document:
 		self.pageList=None
 
 	def process(self,pdf_path,job_number):
-		Extraction = subprocess.check_output("gs -sDEVICE=pngalpha -o file-"+ str(job_number) +"-%02d.png -r144 " +pdf_path,shell=True);
+		Extraction = subprocess.check_output("gs -sDEVICE=jpeg -o file-"+ str(job_number) +"-%02d.jpg -r144 " +pdf_path,shell=True);
 		num_vector = map(int, re.findall(r'\d+', Extraction));
 		pages_processed = num_vector[len(num_vector)-1];
 		img_objects = []
 		for i in range(0,pages_processed):
 			if i<10:
-				img_objects.append(cv2.imread("file-"+str(job_number)+"-"+"0"+str(i+1)+".png"));
+				img_objects.append(cv2.imread("file-"+str(job_number)+"-"+"0"+str(i+1)+".jpg"));
 			else:
-				img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".png"));
+				img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".jpg"));
 		#return img_objects;
 		self.pageList=[]
 		pno=1

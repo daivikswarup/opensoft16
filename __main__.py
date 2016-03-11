@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from document import document
 import numpy
 import subprocess
@@ -9,15 +10,15 @@ import matplotlib.pyplot as plt
 def process(pdf_path="a.pdf",job_number = 1):	#pdf_path is pdf name in current directory and job_number is for processing multiple pdf files
 
 	#For windows executable gs must be replaced with gswin32c
-	Extraction = subprocess.check_output("gs -sDEVICE=pngalpha -o file-"+ str(job_number) +"-%02d.png -r144 " +pdf_path,shell=True);
+	Extraction = subprocess.check_output("gs -sDEVICE=jpg -o file-"+ str(job_number) +"-%02d.jpg -r144 " +pdf_path,shell=True);
 	num_vector = map(int, re.findall(r'\d+', Extraction));
 	pages_processed = num_vector[len(num_vector)-1];
 	img_objects = []
 	for i in range(0,pages_processed):
 		if i<10:
-			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+"0"+str(i+1)+".png"));
+			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+"0"+str(i+1)+".jpg"));
 		else:
-			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".png"));
+			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".jpg"));
 	return img_objects;
 
 def do(addresses):
@@ -35,7 +36,7 @@ def do(addresses):
 	#for d in docList:
 	#	d.process()
 	return docList
-docs=["/home/daivik/opensoft/opensoft16/a.pdf"]
+docs=["/home/aman/Downloads/opensoft16/a.pdf"]
 ret=do(docs)
 count =0
 for doc in ret:
@@ -49,5 +50,11 @@ for doc in ret:
 		pgcnt=pgcnt+1
 		for gr in pg.graphList:
 			print 'graph'
-			plt.subplot(1,1,1),plt.imshow(gr.image)
+			#plt.subplot(1,1,1),plt.imshow(gr.image)
+			#plt.show()
+			plt.subplot(len(gr.textBoxImages)+1,1,1),plt.imshow(gr.image)
+			cnt=2
+			for j in gr.textBoxImages:
+				plt.subplot(len(gr.textBoxImages)+1,1,cnt),plt.imshow(j)
+				cnt=cnt+1
 			plt.show()
