@@ -36,7 +36,7 @@ def do(addresses):
 	#for d in docList:
 	#	d.process()
 	return docList
-docs=["/home/aman/Downloads/opensoft16/a.pdf"]
+docs=["a.pdf"]
 ret=do(docs)
 count =0
 for doc in ret:
