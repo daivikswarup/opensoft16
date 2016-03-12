@@ -655,8 +655,24 @@ class graph:
             print self.curveList
 
 #<<<<<<< HEAD
-    def fillData():
-        pass
+    # the fill data funtion doesn,t take care of textbox inside the graph
+#image passing needs clarification
+
+    def fillData(self):
+        table=np.zeros((len(self.curveList),self.x2-self.x1,2))
+        for i in range(self.x1,self.x2):
+            for j in range(self.y1,self.y2):
+                for k in range(0,len(self.curveList)):
+                    if img_object[j,i].all()<(self.curveList[k]+20).all() and self.image[i,j].all()>(self.curveList[k]-20).all():
+                         #replace image list with appropriatre  object
+                        if self.isLog==False:
+                            table[k,i]=[i*self.dx+self.minx,self.miny+j*self.dy]
+                        else:
+                            table[k,i]=[i*self.dx,math.exp(self.dy)]
+        return table
+
+
+#End of Funtion to avoid merge conflict -Adapa
   
    
 def centroid_histogram(clt):   
@@ -783,21 +799,4 @@ print g1.isLog'''
 
 #289,407,855,1
 
-#image passing needs clarification
-
-def fillData(self):
-    table=np.zeros((len(self.curveList),self.x2-self.x1,2))
-    for i in range(self.x1,self.x2):
-        for j in range(self.y1,self.y2):
-            for k in range(0,len(self.curveList)):
-                if img_object[j,i].all()<(self.curveList[k]+20).all() and self.image[i,j].all()>(self.curveList[k]-20).all():
-                     #replace image list with appropriatre  object
-                    if self.isLog==False:
-                        table[k,i]=[i*self.dx+self.minx,self.miny+j*self.dy]
-                    else:
-                        table[k,i]=[i*self.dx,math.exp(self.dy)]
-    return table
-
-
-#End of Funtion to avoid merge conflict -Adapa
 
