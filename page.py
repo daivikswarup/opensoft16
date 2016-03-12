@@ -247,13 +247,14 @@ class page:
 	def processGraphList(self):
 
 		for g in self.graphList:
-			print "ok"
-			g.findLabel()
-			g.findLabelText()
-			g.findGradient()
-			g.findMarkings()
-			g.findCrop()
-			g.findColorNnumOfPlots()
+			# print "ok"
+			# g.findLabel()
+			# g.findLabelText()
+			# g.findGradient()
+			# g.findMarkings()
+			# g.findCrop()
+			# g.findColorNnumOfPlots()
 			#g.fillData()
+			pass
 
 
