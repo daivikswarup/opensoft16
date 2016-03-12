@@ -11,6 +11,7 @@ class document:
 
 	def process(self,pdf_path,job_number):
 		Extraction = subprocess.check_output("gs -sDEVICE=jpeg -o file-"+ str(job_number) +"-%02d.jpg -r144 " +pdf_path,shell=True);
+		#Extraction = subprocess.check_ouput("convert -density 300 "+pdf_path+" -quality 100 file-"+str(job_number) +"-%02d.jpg",shell=True);
 		num_vector = map(int, re.findall(r'\d+', Extraction));
 		pages_processed = num_vector[len(num_vector)-1];
 		img_objects = []

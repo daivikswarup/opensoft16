@@ -50,5 +50,11 @@ for doc in ret:
 		pgcnt=pgcnt+1
 		for gr in pg.graphList:
 			print 'graph'
-			plt.subplot(1,1,1),plt.imshow(gr.image)
+			#plt.subplot(1,1,1),plt.imshow(gr.image)
+			#plt.show()
+			plt.subplot(len(gr.textBoxImages)+1,1,1),plt.imshow(gr.image)
+			cnt=2
+			for j in gr.textBoxImages:
+				plt.subplot(len(gr.textBoxImages)+1,1,cnt),plt.imshow(j)
+				cnt=cnt+1
 			plt.show()
