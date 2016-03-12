@@ -19,6 +19,7 @@ def process(pdf_path="a.pdf",job_number = 1):	#pdf_path is pdf name in current d
 			img_objects.append(cv2.imread("file-"+str(job_number)+"-"+str(i+1)+".png"));
 	return img_objects;
 
+
 def __main__():
 	# This function process all the pdfs in the docList
 	e = document()
@@ -26,5 +27,10 @@ def __main__():
 	#docList = []
 	#docList.append(e)
 	
+
+	for d in docList:
+		d.process()
+
 	#for d in docList:
 	#	d.process()
+
