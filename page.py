@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 from graph import graph
+#import set
 min_length = 0.1
 threshold = 230
 delta=10
@@ -85,6 +86,7 @@ class page:
 			for j in range(i+1,lines.total_vertical):
 				if((abs(lines.vert_topy[i]-lines.vert_topy[j])<=delta) and (abs(lines.vert_bottomy[i]-lines.vert_bottomy[j])<=delta) and (abs(lines.vert_x[i]-lines.vert_x[j])<=delta)):
 					todelete.append(j)
+		todelete=list(set(todelete))
 		todelete.sort(reverse=True)
 		for i in todelete:
 			del lines.vert_x[i]
@@ -96,6 +98,8 @@ class page:
 			for j in range(i+1,lines.total_horizontal):
 				if((abs(lines.hor_leftx[i]-lines.hor_leftx[j])<=delta) and (abs(lines.hor_rightx[i]-lines.hor_rightx[j])<=delta) and (abs(lines.hor_y[i]-lines.hor_y[j])<=delta)):
 					todelete.append(j)
+					
+		todelete=list(set(todelete))
 		todelete.sort(reverse=True)
 		for i in todelete:
 			del lines.hor_y[i]

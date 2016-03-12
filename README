@@ -1,0 +1,9 @@
+To run GUI:
+
+	python GUI.py
+	*A frame should open*
+	file->open
+	*dialog box should open*
+	select 1 or more files and click OK
+	*WAIT*
+	
