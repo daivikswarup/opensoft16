@@ -143,9 +143,11 @@ class page:
 		for r in rectangles:
 			# r is ((row1,col1),(row2,col2)) 1->Top left, 2->Bottom Right
 			#print r
-			graphObj=graph(self.document,self.pageno,r[0][0],r[0][1],r[1][0],r[1][1])
 			crop_img = img[r[0][0]:r[1][0], r[0][1]:r[1][1]]
-			graphObj.image=crop_img
+			print crop_img[0][0]
+			print r[1][1],r[0][1],r[1][0],r[0][0]
+			graphObj=graph(self.document,self.pageno,r[1][1],r[0][1],r[1][0],r[0][0],img,crop_img)
+			#graphObj.image=crop_img
 			gray = cv2.cvtColor(crop_img,cv2.COLOR_BGR2GRAY)
 			_,thresh = cv2.threshold(gray,180,255,cv2.THRESH_BINARY_INV) # threshold
 			height = np.size(crop_img, 0)
@@ -241,9 +243,13 @@ class page:
 	def processGraphList(self):
 
 		for g in self.graphList:
-			'''g.findLabel()
+			print "ok"
+			g.findLabel()
+			g.findLabelText()
+			g.findGradient()
 			g.findMarkings()
-			g.findColor()
-			g.fillData()'''
+			g.findCrop()
+			g.findColorNnumOfPlots()
+			#g.fillData()
 
 
