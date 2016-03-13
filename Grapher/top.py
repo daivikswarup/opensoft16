@@ -4,7 +4,7 @@ import numpy
 import subprocess
 import re
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class top:
 	def __init__(self):

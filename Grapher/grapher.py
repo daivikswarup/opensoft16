@@ -4,8 +4,8 @@ from top import top
 #import wx.Image
 import wx.lib.wxcairo as wxcairo
 import sys
-import poppler
-import matplotlib.pyplot as plt
+# import poppler
+# import matplotlib.pyplot as plt
 picturewidth=600
 pictureheight=600
 class PDFWindow(wx.ScrolledWindow):
@@ -335,7 +335,9 @@ class MainWindow(wx.Frame):
 # #           print "Result indicated failed drop"
 # #       print
 
+class Grapher:
 
-app = wx.App(False)
-frame = MainWindow(None, "Sample editor")
-app.MainLoop()
+    def run(self):
+        app = wx.App(False)
+        frame = MainWindow(None, "Sample editor")
+        app.MainLoop()

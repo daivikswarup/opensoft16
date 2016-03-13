@@ -3,11 +3,11 @@ import math
 from curve import curve
 import numpy as np 
 import cv2
-from SimpleCV import *
+# from SimpleCV import *
 from pytesseract import image_to_string
 from PIL import Image as IMAGE
 #from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import re
 import time
 from sklearn.cluster import KMeans
