@@ -31,6 +31,7 @@ setup(
         "pytesseract",
         "scipy",
         "numpy",
+        "wxpython",
     ],
     entry_points={
         'console_scripts': [
