@@ -4,6 +4,8 @@ from top import top
 #import wx.Image
 import wx.lib.wxcairo as wxcairo
 import sys
+from grPanel import *
+from document import document
 # import poppler
 # import matplotlib.pyplot as plt
 picturewidth=600
@@ -110,28 +112,23 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, None, -1, "Opensoft16",size=(1000,600))
         self.dirname=''
-        self.current_files=[]
-        self.processed_files=[]
-        self.processor=top()
+        self.docList=[]
         self.currentdoc=None
-        #self.pdfwindow = PDFWindow(self)
-        img = wx.EmptyImage(pictureheight,picturewidth)
-        self.rightpanel = wx.Panel(self)
-        self.leftpanel = wx.Panel(self)
-        self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY, 
-                                         wx.BitmapFromImage(img))
-        #self.treemap={}
-        # A "-1" in the size parameter instructs wxWidgets to use the default size.
-        # In this case, we select 200px width and the default height.
-        #wx.Frame.__init__(self, parent, title=title, size=(200,-1))
-        #self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-        self.CreateStatusBar() # A Statusbar in the bottom of the window
+
+        self.initUI()
+
+    def initUI(self):
+        self.CreateStatusBar()
+        
+        #Notebook
+        self.docnote=DocNoteBook(self,self.docList)
+
         #tree
         self.tree_ctrl = wx.TreeCtrl(self, -1, style=wx.TR_DEFAULT_STYLE | \
                                                 wx.TR_FULL_ROW_HIGHLIGHT )
         self.root = self.tree_ctrl.AddRoot('Files')
-        #self.tree_ctrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged, id=1)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivated, self.tree_ctrl)
+
         # Setting up the menu.
         filemenu= wx.Menu()
         menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
@@ -143,31 +140,18 @@ class MainWindow(wx.Frame):
         menuBar.Append(filemenu,"&File") # Adding the "filemenu" to the MenuBar
         self.SetMenuBar(menuBar)  # Adding the MenuBar to the Frame content.
 
-        # Events.
+        # Events for menu
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
-
-        self.sizer3 = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer3.Add(self.rightpanel,1,wx.EXPAND)
-        #self.buttons = []
-        #for i in range(0, 6):
-        #    self.buttons.append(wx.Button(self, -1, "Button &"+str(i)))
-        #    self.sizer2.Add(self.buttons[i], 1, wx.EXPAND)
-
-        # Use some sizers to see layout options
-        self.sizer2=wx.BoxSizer(wx.VERTICAL)
-        #self.sizer2.Add(self.pdfwindow, 1, wx.EXPAND)
-        self.sizer2.Add(self.sizer3, 1, wx.EXPAND)
+        
+        #Sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.tree_ctrl, 1, wx.EXPAND)
-        self.sizer.Add(self.sizer2,1,wx.EXPAND)
-        #self.sizer.Add(self.sizer2, 0, wx.EXPAND)
+        self.sizer.Add(self.tree_ctrl, 1, wx.SHAPED)
+        self.sizer.Add(self.docnote, 1, wx.SHAPED)
 
-        #Layout sizers
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
-        self.sizer.Fit(self)
         self.Show()
 
     def OnAbout(self,e):
@@ -183,24 +167,39 @@ class MainWindow(wx.Frame):
         """ Open a file"""
         dlg = wx.FileDialog(self, "Choose files", self.dirname, ".", "*.pdf", wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
-            self.current_files=dlg.GetPaths()
-            self.processed_files=self.processor.do(self.current_files)
+
+            for address in dlg.GetPaths():
+                d = document(self,address,len(self.docList))
+                d.start()
+                self.docList.append(d)
+
+            self.RefreshTree()
+            # for d in self.docList:
+            #     d.join()
             #self.tree_ctrl = wx.TreeCtrl(self, -1, style=wx.TR_DEFAULT_STYLE | \
             #                                    wx.TR_FULL_ROW_HIGHLIGHT )
             #self.root = self.tree_ctrl.AddRoot('Files')
-            self.reinit()
-            self.leftpanel.Refresh()
-            self.tree_ctrl.ExpandAll()
-            self.sizer.Fit(self)
+            
+            #self.tree_ctrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged, id=1)
+            
+            #self.sizer.Fit(self)
+
         dlg.Destroy()
-    def reinit(self):
-        cntdoc=1
-        for doc in self.processed_files:
+
+    def RefreshTree(self):
+        print"Refreshing Tree"
+        self.tree_ctrl.DeleteAllItems()
+        self.root = self.tree_ctrl.AddRoot('Files')
+        cntdoc=0
+        self.docnote.initdocs(self.docList)        #self.rightpanel.Refresh()
+        #self.rightsizer.Add(self.docnote,wx.ALL|wx.EXPAND, 5)
+        for doc in self.docList:
             currentdoc=self.tree_ctrl.AppendItem(self.root,"doc_"+str(cntdoc))
            #print currentdoc.GetID()
             #self.treemap[currentdoc]=doc
+            doc.docid=cntdoc
             self.tree_ctrl.SetItemPyData(currentdoc, doc)
-            print currentdoc.__class__.__name__
+            #print currentdoc.__class__.__name__
             cntdoc=cntdoc+1
             cntpage=1
             for page in doc.pageList:
@@ -215,6 +214,9 @@ class MainWindow(wx.Frame):
                     cntgraph=cntgraph+1
                     #tempimage=Image(gr.image.toString())
                     #self.sizer2.Add(tempimage,1,wx.EXPAND)
+        #self.leftpanel.Refresh()
+        self.tree_ctrl.ExpandAll()
+        
     def OnSelChanged(self, event):
         '''Method called when selected item is changed
         '''
@@ -225,56 +227,56 @@ class MainWindow(wx.Frame):
     def OnActivated(self, evt):
         print "OnActivated:    "
         obj=self.tree_ctrl.GetItemData(evt.GetItem()).GetData()
-        if obj.__class__.__name__=='document':
-            pass
-        if obj.__class__.__name__=='page':
-            print 'page'
-            image=obj.pdfImage
-            h, w = image.shape[:2]
-            #wxImage = wx.ImageFromBuffer(w, h, image)
-            H=h
-            W=w
-            if(h>pictureheight):
-                H=pictureheight
-                W=(pictureheight*w)/h
-            if(W>picturewidth):
-                H=(picturewidth*H)/W
-                W=picturewidth
-            #newimage=np.zeros((H,W,3), np.uint8)
-            #newimage=cv2.resize(image,(H,W))
-            #image=newimage
-            wxImage = wx.ImageFromBuffer( w,h, image)
-            wxImage=wxImage.Scale(W,H)
-            print W
-            print H
-            bitmap = wx.BitmapFromImage(wxImage)
-            self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
-            self.rightpanel.Refresh()
-        if obj.__class__.__name__=='graph':
-            print 'graph'
-            image=obj.image
-            plt.subplot(1,1,1),plt.imshow(image)
-            plt.show()
-            h, w = image.shape[:2]
-            #wxImage = wx.ImageFromBuffer(w, h, image)
-            H=h
-            W=w
-            if(h>pictureheight):
-                H=pictureheight
-                W=(pictureheight*w)/h
-            if(W>picturewidth):
-                H=(picturewidth*H)/W
-                W=picturewidth
-            #newimage=np.zeros((H,W,3), np.uint8)
-            #newimage=cv2.resize(image,(H,W))
-            #image=newimage
-            wxImage = wx.ImageFromBuffer( w,h, image)
-            wxImage=wxImage.Scale(W,H)
-            print W
-            print H
-            bitmap = wx.BitmapFromImage(wxImage)
-            self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
-            self.rightpanel.Refresh()
+        # if obj.__class__.__name__=='document':
+        #     pass
+        # if obj.__class__.__name__=='page':
+        #     print 'page'
+        #     image=obj.pdfImage
+        #     h, w = image.shape[:2]
+        #     #wxImage = wx.ImageFromBuffer(w, h, image)
+        #     H=h
+        #     W=w
+        #     if(h>pictureheight):
+        #         H=pictureheight
+        #         W=(pictureheight*w)/h
+        #     if(W>picturewidth):
+        #         H=(picturewidth*H)/W
+        #         W=picturewidth
+        #     #newimage=np.zeros((H,W,3), np.uint8)
+        #     #newimage=cv2.resize(image,(H,W))
+        #     #image=newimage
+        #     wxImage = wx.ImageFromBuffer( w,h, image)
+        #     wxImage=wxImage.Scale(W,H)
+        #     print W
+        #     print H
+        #     bitmap = wx.BitmapFromImage(wxImage)
+        #     self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
+        #     self.rightpanel.Refresh()
+        # if obj.__class__.__name__=='graph':
+        #     print 'graph'
+            # image=obj.image
+            # plt.subplot(1,1,1),plt.imshow(image)
+            # plt.show()
+            # h, w = image.shape[:2]
+            # #wxImage = wx.ImageFromBuffer(w, h, image)
+            # H=h
+            # W=w
+            # if(h>pictureheight):
+            #     H=pictureheight
+            #     W=(pictureheight*w)/h
+            # if(W>picturewidth):
+            #     H=(picturewidth*H)/W
+            #     W=picturewidth
+            # #newimage=np.zeros((H,W,3), np.uint8)
+            # #newimage=cv2.resize(image,(H,W))
+            # #image=newimage
+            # wxImage = wx.ImageFromBuffer( w,h, image)
+            # wxImage=wxImage.Scale(W,H)
+            # print W
+            # print H
+            # bitmap = wx.BitmapFromImage(wxImage)
+            # self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
+            # self.rightpanel.Refresh()
 
 
 #     def OnBeginDrag(self, event):
@@ -338,6 +340,7 @@ class MainWindow(wx.Frame):
 class Grapher:
 
     def run(self):
+        print 'here'
         app = wx.App(False)
         frame = MainWindow(None, "Sample editor")
         app.MainLoop()
