@@ -1,9 +1,11 @@
 To install, open terminal and paste the following command:
+
 ```
 #!bash
 
 sudo python setup.py install
 ```
+
 Run by using the command
 
 ```
@@ -12,8 +14,8 @@ Run by using the command
 grapher
 ```
 
-
 To Reset Installer
+
 ```
 #!bash
 
