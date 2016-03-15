@@ -1,9 +1,23 @@
-To run GUI:
+To install, open terminal and paste the following command:
+```
+#!bash
 
-	python GUI.py
-	*A frame should open*
-	file->open
-	*dialog box should open*
-	select 1 or more files and click OK
-	*WAIT*
-	
+sudo python setup.py install
+```
+Run by using the command
+
+```
+#!bash
+
+grapher
+```
+
+
+To Reset Installer
+```
+#!bash
+
+sudo python setup.py sdist
+```
+
+For adding dependencies, open setup.py and add them into install_requires variable.
