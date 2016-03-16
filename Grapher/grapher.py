@@ -7,6 +7,7 @@ import sys
 from grPanel import *
 import threading
 from document import document
+from graph import graph
 from Utils import ResultEvent,EVT_RESULT_ID,DeleteEvent,CropEvent
 # import poppler
 # import matplotlib.pyplot as plt
@@ -44,10 +45,11 @@ class MainWindow(wx.Frame):
 
         # Setting up the menu.
         filemenu= wx.Menu()
-        menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
-        menuUpdate = filemenu.Append(wx.ID_ANY, "&Update"," Update changes")
-        menuAbout= filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
-        menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
+        self.menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
+        self.menuProcess = filemenu.Append(wx.ID_EXIT,"&Process"," Begin Processing")
+        self.menuUpdate = filemenu.Append(wx.ID_ANY, "&Update"," Update changes")
+        self.menuAbout= filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
+        self.menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
 
         # Creating the menubar.
         menuBar = wx.MenuBar()
@@ -55,22 +57,33 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menuBar)  # Adding the MenuBar to the Frame content.
 
         # Events for menu
-        self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
-        self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
-        self.Bind(wx.EVT_MENU, self.Update, menuUpdate)
+        self.Bind(wx.EVT_MENU, self.OnOpen, self.menuOpen)
+        self.Bind(wx.EVT_MENU, self.OnExit, self.menuExit)
+        self.Bind(wx.EVT_MENU, self.OnAbout, self.menuAbout)
+        self.Bind(wx.EVT_MENU, self.Update, self.menuUpdate)
+        self.Bind(wx.EVT_MENU, self.Process, self.menuProcess)
 
         #To refresh on deletes/crops
         #self.Bind(DeleteEvent, self.deletefunc)
         
         #Sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.tree_ctrl, 1, wx.EXPAND)
-        self.sizer.Add(self.docnote, 1, wx.EXPAND)
+        self.sizer.Add(self.tree_ctrl, 3, wx.EXPAND)
+        self.sizer.Add(self.docnote, 5, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.Show()
+    def Process(self, e):
+        self.menuProcess.Enable(False)
+        self.totalpages=0
+        self.pagesdone=0
+        self.progress=wx.ProgressDialog('Progress','Starting...',style=wx.PD_CAN_SKIP)
+        for d in self.docList:
+            #d = document(self,address,len(self.docList))
+            d.start()
+            #self.docList.append(d)
+        self.RefreshTree()
     def Update(self,e):
         self.docList=self.docnote.savefiles()
 
@@ -82,7 +95,13 @@ class MainWindow(wx.Frame):
         dlg = wx.MessageDialog(self, " To extract tables from graphs", wx.OK)
         dlg.ShowModal() # Shows it
         dlg.Destroy() # finally destroy it when finished.
-
+    def crop(self,page,rect):
+        cropimage=page.pdfImage[rect[1]:rect[3]][rect[0]:rect[2]]
+        newg=graph(page.document,page.pageno,rect[2],rect[0],rect[3],rect[1],page.pdfImage,cropimage)
+        newg.fillData()
+        print rect
+        self.docList[page.document.docid].pageList[page.pageno].graphList.append(newg)
+        self.RefreshTree()
     def OnExit(self,e):
         self.Close(True)  # Close the frame.
     def deletefunc(self,e):
@@ -101,14 +120,16 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
         #ProgressBar
 
-            self.totalpages=0
-            self.pagesdone=0
-            self.progress=wx.ProgressDialog('Progress','Starting...')
+            # self.totalpages=0
+            # self.pagesdone=0
+            # self.progress=wx.ProgressDialog('Progress','Starting...')
+
             for address in dlg.GetPaths():
-                d = document(self,address,len(self.docList))
-                d.start()
-                self.docList.append(d)
+                 d = document(self,address,len(self.docList))
+                 #d.start()
+                 self.docList.append(d)
             self.RefreshTree()
+            self.menuProcess.Enable(True)
             # for d in self.docList:
             #     d.join()
             #self.tree_ctrl = wx.TreeCtrl(self, -1, style=wx.TR_DEFAULT_STYLE | \
@@ -175,7 +196,7 @@ class MainWindow(wx.Frame):
             cntdoc=cntdoc+1
         #self.leftpanel.Refresh()
         self.tree_ctrl.ExpandAll()
-        self.sizer.Fit(self)
+        #self.sizer.Fit(self)
         
     def OnSelChanged(self, event):
         '''Method called when selected item is changed

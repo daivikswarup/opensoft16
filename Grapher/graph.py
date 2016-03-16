@@ -621,7 +621,7 @@ class graph:
             print self.curveList
 
 #<<<<<<< HEAD
-    def fillData():
+    def fillData(self):
         pass
   
    

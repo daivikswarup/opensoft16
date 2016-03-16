@@ -17,6 +17,7 @@ pageheight=600
 import wx
 import wx.lib.wxcairo as wxcairo
 import sys
+from crop import *
 import poppler
 #from crop import *
 from Utils import ResultEvent,DeleteEvent,CropEvent
@@ -24,37 +25,40 @@ from Utils import ResultEvent,DeleteEvent,CropEvent
 import wx
 
 ########################################################################
-'''
-class TestPopup(wx.PopupWindow):
+
+class TestPopup(wx.Frame):
     """"""
 
     #----------------------------------------------------------------------
-    def __init__(self, parent, style,filename,mainframe,page):
+    def __init__(self, parent, style,filename,page,mainframe):
         """Constructor"""
-        wx.PopupWindow.__init__(self, parent, style)
+        wx.Frame.__init__(self, parent, style)
         self.mainframe=mainframe
-
+        self.page=page
         panel = wx.Panel(self)
        	self.panel = RectangleSelectImagePanel(self,filename)
        	self.okbutton=wx.Button(self,-1, 'OK', (50, 130))
        	self.okbutton.Bind(wx.EVT_BUTTON, self.OkButton)
        	self.cancelbutton=wx.Button(self,-1, 'Cancel', (50, 130))
-       	self.cancelbutton.Bind(wx.EVT_BUTTON, self.cancelButton)
+       	self.cancelbutton.Bind(wx.EVT_BUTTON, self.CancelButton)
        	self.sizer1=wx.BoxSizer(wx.HORIZONTAL)
        	self.sizer2=wx.BoxSizer(wx.VERTICAL)
-       	self.sizer1.Add(okbutton,1,wx.EXPAND)
-       	self.sizer1.Add(cancelbutton,1,wx.EXPAND)
+       	self.sizer1.Add(self.okbutton,1,wx.EXPAND)
+       	self.sizer1.Add(self.cancelbutton,1,wx.EXPAND)
        	self.sizer2.Add(self.panel,5,wx.EXPAND)
        	self.sizer2.Add(self.sizer1,1,wx.EXPAND)
        	self.SetSizer(self.sizer2)
        	self.sizer2.Fit(self)
     def OkButton(self,e):
-    	x0 = None
-        y0 = None
-        x1 = None
-        y1 = None
-    	self.mainframe.crop(page,
-'''
+    	x0 = self.panel.x0
+        y0 = self.panel.y0
+        x1 = self.panel.x1
+        y1 = self.panel.y1
+    	self.mainframe.crop(self.page,(x0,y0,x1,y1))
+    	#self.Close()
+    def CancelButton(self,e):
+    	self.Close()
+
     #     panel.SetBackgroundColour("CADET BLUE")
 
     #     st = wx.StaticText(panel, -1,
@@ -410,7 +414,16 @@ class pagePanel(wx.Panel):
 		self.graphnote.AddPage(self.panel1,"PageView")
 		self.sizer=wx.BoxSizer(wx.VERTICAL)
 		self.sizer.Add(self.graphnote,1,wx.EXPAND)
+		self.newbutton=wx.Button(self,-1, 'ADD NEW GRAPH', (50, 130))
+		self.newbutton.Bind(wx.EVT_BUTTON, self.newButton)
+		self.sizer.Add(self.newbutton)
     		self.SetSizer(self.sizer)
+    	def newButton(self,e):
+    		fname='filed'+str(self.page.document.docid)+'p'+str(self.page.pageno)+'.jpg'
+    		cv2.imwrite(fname,self.page.pdfImage)
+    		tp=TestPopup(self,wx.SIMPLE_BORDER,fname,self.page,self.mainframe)
+            	tp.Show(True)
+    		
     	def save(self):
     		newglist=self.graphnote.save()
     		self.page.graphList=newglist
