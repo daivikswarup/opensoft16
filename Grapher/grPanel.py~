@@ -101,6 +101,7 @@ class PDFWindow(wx.ScrolledWindow):
                 self.n_page = next_page
                 self.current_page = self.document.get_page(next_page)
                 self.Refresh()
+                
 class curvepanel(wx.Panel):
 	def __init__(self,parent,curveobj):
 		wx.Panel.__init__(self,parent)
@@ -339,6 +340,18 @@ class PageNoteBook(wx.Notebook):
     def __init__(self, parent,pagelist):
         print '502'
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
+        self.pan=wx.Panel(self)
+        self.viewersizer=wx.BoxSizer(wx.VERTICAL)
+        self.viewer=PDFWindow(self.pan)
+    	self.viewer.LoadDocument(parent.doc.pdf_path)
+    	self.viewer.SetFocus()
+    	self.viewersizer.Add(self.viewer,1,wx.EXPAND)
+    	self.pan.SetSizer(self.viewersizer)
+    	self.viewersizer.Fit(self.pan)
+    	#self.pdfpanel.SetSizer(self.viewersizer)
+	#self.sizer=wx.BoxSizer(wx.VERTICAL)
+    	#self.pagenote.AddPage(self.viewer,'View PDF')
+        
         print '2'
         self.pages=[]
         for page in pagelist:
@@ -346,6 +359,7 @@ class PageNoteBook(wx.Notebook):
         	self.pages.append(pagetab)
         	#curvetab.SetBackgroundColour("Gray")
         	self.AddPage(pagetab, "Page"+str(page.pageno))
+        self.AddPage(self.pan,'View PDF')
  
         # Create the first tab and add it to the notebook
 class docPanel(wx.Panel):
@@ -357,7 +371,7 @@ class docPanel(wx.Panel):
 		self.pagenote=PageNoteBook(self,docu.pageList)
 		print '3'
 		
-		self.pdfpanel=wx.Panel(self.pagenote)
+		#self.pdfpanel=wx.Panel(self.pagenote)
 		# self.buttonpanel = pdfButtonPanel(pdfpanel, wx.NewId(),
   #                               wx.DefaultPosition, wx.DefaultSize, 0)
   #       	self.buttonpanel.SetSizerProps(expand=True)
@@ -376,14 +390,14 @@ class docPanel(wx.Panel):
   #       	self.viewsizer.Add(self.viewer,1,wx.EXPAND)
   #       	self.pdfpanel.SetSizer(self.viewsizer)
   #       	self.pagenote.AddPage(self.pdfpanel,'View PDF')
-		self.viewersizer=wx.BoxSizer(wx.VERTICAL)
-		self.viewer=PDFWindow(self.pdfpanel)
-    		self.viewer.LoadDocument(docu.pdf_path)
-    		self.viewer.SetFocus()
-    		self.viewsizer.Add(self.viewer,1,wx.EXPAND)
-    		self.pdfpanel.SetSizer(self.viewsizer)
+		#self.viewersizer=wx.BoxSizer(wx.VERTICAL)
+		#self.viewer=PDFWindow(self.pagenote)
+    		#self.viewer.LoadDocument(docu.pdf_path)
+    		#self.viewer.SetFocus()
+    		#self.viewersizer.Add(self.viewer,1,wx.EXPAND)
+    		#self.pdfpanel.SetSizer(self.viewersizer)
 		self.sizer=wx.BoxSizer(wx.VERTICAL)
-    		self.pagenote.AddPage(self.pdfpanel,'View PDF')
+    		#self.pagenote.AddPage(self.viewer,'View PDF')
 		self.sizer.Add(self.pagenote,1,wx.EXPAND)
     		self.SetSizer(self.sizer)
 
@@ -405,10 +419,10 @@ class DocNoteBook(wx.Notebook):
         self.pages=[]
         self.initdocs(doclist)
     def initdocs(self,doclist):
-     #  for i in range(0,len(self.pages)):
-     #    self.DeletePage(i)
-    	# self.pages = []
-        for doc in doclist:
+       for i in range(0,len(self.pages)):
+         self.DeletePage(i)
+       self.pages = []
+       for doc in doclist:
         	print '1'
         	doctab=docPanel(self,doc)
         	#curvetab.SetBackgroundColour("Gray")

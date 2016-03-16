@@ -162,7 +162,7 @@ class page(threading.Thread):
         return rectangles
 
     def filterGraphsFromRectangles(self,rectangles):
-    
+        gid=0
         for r in rectangles:
             print 'page rectangle'
             print self.pageno 
@@ -327,6 +327,8 @@ class page(threading.Thread):
                     if graphObj.istextbox:
                         graphObj.textBoxImages.append(cropped_text)
                 
+            graphObj.graphID=gid
+            gid=gid+1
             self.graphList.append(graphObj)
                 
             

@@ -16,6 +16,7 @@ class graph:
     def __init__(self,document,pageno,x2,x4,y2,y4,imagename,crop_image):
 
         # reference to the document
+        self.graphID=None
         self.document = document
 
         # page in which the graph is present

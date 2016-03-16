@@ -117,9 +117,9 @@ class MainWindow(wx.Frame):
         self.tree_ctrl.DeleteAllItems()
         self.root = self.tree_ctrl.AddRoot('Files')
         cntdoc=0
-        self.sizer.Remove(self.docnote)
-        self.docnote=DocNoteBook(self,self.docList)        #self.rightpanel.Refresh()
-        self.sizer.Add(self.docnote,1,wx.EXPAND)
+        #self.sizer.Remove(self.docnote)
+        self.docnote.initdocs(self.docList)        #self.rightpanel.Refresh()
+        #self.sizer.Add(self.docnote,1,wx.EXPAND)
         #self.rightsizer.Add(self.docnote,wx.ALL|wx.EXPAND, 5)
         print 'here'
         for doc in self.docList:
@@ -163,7 +163,7 @@ class MainWindow(wx.Frame):
             self.docnote.SetSelection(obj.docid)
         if obj.__class__.__name__=='page':
             self.docnote.SetSelection(obj.document.docid)
-            self.docnote.pages[obj.document.docid].SetSelection(obj.pageno)
+            self.docnote.pages[obj.document.docid].pagenote.SetSelection(obj.pageno)
             # print 'page'
             # image=obj.pdfImage
             # h, w = image.shape[:2]
@@ -188,7 +188,8 @@ class MainWindow(wx.Frame):
             # self.rightpanel.Refresh()
         if obj.__class__.__name__=='graph':
             self.docnote.SetSelection(obj.document.docid)
-            self.docnote.pages[obj.document.docid].SetSelection(obj.pageno)
+            self.docnote.pages[obj.document.docid].pagenote.SetSelection(obj.pageno)
+            self.docnote.pages[obj.document.docid].pagenote.pages[obj.pageno].graphnote.SetSelection(obj.graphID)
             #self.docnote.pages[obj.document.docid].paged[obj.pageno.SetSelection()
             # print 'graph'
             # image=obj.image
