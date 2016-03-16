@@ -609,7 +609,7 @@ class graph:
                 
                 
             for i in range(0,len(graphColor)):
-                c = curve(graphColor[i],graphNamesList[i])
+                c = curve(graphColor[i],graphNamesList[i],i,self.graphID,self.pageno,self.document.docid)
                 #c.color(graphColor[i])
                 #c.name(graphName[i])
                  

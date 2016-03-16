@@ -7,7 +7,7 @@ import sys
 from grPanel import *
 import threading
 from document import document
-from Utils import ResultEvent,EVT_RESULT_ID
+from Utils import ResultEvent,EVT_RESULT_ID,DeleteEvent,CropEvent
 # import poppler
 # import matplotlib.pyplot as plt
 picturewidth=600
@@ -34,7 +34,7 @@ class MainWindow(wx.Frame):
         self.CreateStatusBar()
         
         #Notebook
-        self.docnote=DocNoteBook(self,self.docList)
+        self.docnote=DocNoteBook(self,self.docList,self)
 
         #tree
         self.tree_ctrl = wx.TreeCtrl(self, -1, style=wx.TR_DEFAULT_STYLE | \
@@ -45,6 +45,7 @@ class MainWindow(wx.Frame):
         # Setting up the menu.
         filemenu= wx.Menu()
         menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
+        menuUpdate = filemenu.Append(wx.ID_ANY, "&Update"," Update changes")
         menuAbout= filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
         menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
 
@@ -57,6 +58,10 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
+        self.Bind(wx.EVT_MENU, self.Update, menuUpdate)
+
+        #To refresh on deletes/crops
+        #self.Bind(DeleteEvent, self.deletefunc)
         
         #Sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -66,7 +71,12 @@ class MainWindow(wx.Frame):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.Show()
+    def Update(self,e):
+        self.docList=self.docnote.savefiles()
 
+        ######
+        #Add update function here
+        self.RefreshTree()
     def OnAbout(self,e):
         # Create a message dialog box
         dlg = wx.MessageDialog(self, " To extract tables from graphs", wx.OK)
@@ -75,6 +85,15 @@ class MainWindow(wx.Frame):
 
     def OnExit(self,e):
         self.Close(True)  # Close the frame.
+    def deletefunc(self,e):
+        if e.__class__.__name__=='curve':
+            print 'Deleting Curve'
+            del self.docList[e.doc].pageList[e.page].graphList[e.graph].curveList[e.curveid]
+            self.RefreshTree()
+        elif e.__class__.__name__=='graph':
+            print "Deleting Graph"
+            del self.docList[e.document.docid].pageList[e.pageno].graphList[e.graphID]
+            self.RefreshTree()
 
     def OnOpen(self,e):
         """ Open a file"""
@@ -101,14 +120,16 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def OnResult(self,event):
+        print "HERE"
+        
         if event.data is 10:
             self.RefreshTree()
-        if event.data is 5:
+        elif event.data is 5:
             self.pagesdone=self.pagesdone+1
             self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
             if self.pagesdone==self.totalpages:
                 self.progress.Destroy()
-        if event.data is 15:
+        elif event.data is 15:
             self.totalpages=self.totalpages+1
             self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
 
@@ -129,22 +150,29 @@ class MainWindow(wx.Frame):
             doc.docid=cntdoc
             self.tree_ctrl.SetItemPyData(currentdoc, doc)
             #print currentdoc.__class__.__name__
-            cntdoc=cntdoc+1
-            cntpage=1
+            cntpage=0
             print 'x'
             for page in doc.pageList:
                 currentpage= self.tree_ctrl.AppendItem(currentdoc,"Page_"+str(cntpage))
-                cntpage=cntpage+1
                 #self.treemap[currentpage]=page
                 self.tree_ctrl.SetItemPyData(currentpage, page)
-                cntgraph=1
+                cntgraph=0
                 print 'yo'
                 for gr in page.graphList:
+                    gr.pageno=cntpage
+                    gr.graphID=cntgraph
                     currentgraph=self.tree_ctrl.AppendItem(currentpage,"Graph_"+str(cntgraph))
                     self.tree_ctrl.SetItemPyData(currentgraph, gr)
+                    cntcurve=0
+                    for curve in gr.curveList:
+                        curve.graph=cntgraph
+                        curve.curveid=cntcurve
+                        cntcurve=cntcurve+1
                     cntgraph=cntgraph+1
                     #tempimage=Image(gr.image.toString())
                     #self.sizer2.Add(tempimage,1,wx.EXPAND)
+                cntpage=cntpage+1
+            cntdoc=cntdoc+1
         #self.leftpanel.Refresh()
         self.tree_ctrl.ExpandAll()
         self.sizer.Fit(self)

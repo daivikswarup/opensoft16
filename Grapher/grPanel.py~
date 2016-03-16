@@ -18,7 +18,92 @@ import wx
 import wx.lib.wxcairo as wxcairo
 import sys
 import poppler
+from crop import *
+from Utils import ResultEvent,DeleteEvent,CropEvent
 
+import wx
+
+########################################################################
+'''
+class TestPopup(wx.PopupWindow):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self, parent, style,filename,mainframe,page):
+        """Constructor"""
+        wx.PopupWindow.__init__(self, parent, style)
+        self.mainframe=mainframe
+
+        panel = wx.Panel(self)
+       	self.panel = RectangleSelectImagePanel(self,filename)
+       	self.okbutton=wx.Button(self,-1, 'OK', (50, 130))
+       	self.okbutton.Bind(wx.EVT_BUTTON, self.OkButton)
+       	self.cancelbutton=wx.Button(self,-1, 'Cancel', (50, 130))
+       	self.cancelbutton.Bind(wx.EVT_BUTTON, self.cancelButton)
+       	self.sizer1=wx.BoxSizer(wx.HORIZONTAL)
+       	self.sizer2=wx.BoxSizer(wx.VERTICAL)
+       	self.sizer1.Add(okbutton,1,wx.EXPAND)
+       	self.sizer1.Add(cancelbutton,1,wx.EXPAND)
+       	self.sizer2.Add(self.panel,5,wx.EXPAND)
+       	self.sizer2.Add(self.sizer1,1,wx.EXPAND)
+       	self.SetSizer(self.sizer2)
+       	self.sizer2.Fit(self)
+    def OkButton(self,e):
+    	x0 = None
+        y0 = None
+        x1 = None
+        y1 = None
+    	self.mainframe.crop(page,
+'''
+    #     panel.SetBackgroundColour("CADET BLUE")
+
+    #     st = wx.StaticText(panel, -1,
+    #                        "This is a special kind of top level\n"
+    #                        "window that can be used for\n"
+    #                        "popup menus, combobox popups\n"
+    #                        "and such.\n\n"
+    #                        "Try positioning the demo near\n"
+    #                        "the bottom of the screen and \n"
+    #                        "hit the button again.\n\n"
+    #                        "In this demo this window can\n"
+    #                        "be dragged with the left button\n"
+    #                        "and closed with the right."
+    #                        ,
+    #                        pos=(10,10))
+         
+
+    #     panel.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
+    #     panel.Bind(wx.EVT_MOTION, self.OnMouseMotion)
+    #     panel.Bind(wx.EVT_LEFT_UP, self.OnMouseLeftUp)
+    #     panel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+
+    #     st.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
+    #     st.Bind(wx.EVT_MOTION, self.OnMouseMotion)
+    #     st.Bind(wx.EVT_LEFT_UP, self.OnMouseLeftUp)
+    #     st.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+
+    #     wx.CallAfter(self.Refresh)    
+
+    # def OnMouseLeftDown(self, evt):
+    #     self.Refresh()
+    #     self.ldPos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
+    #     self.wPos = self.ClientToScreen((0,0))
+    #     self.panel.CaptureMouse()
+
+    # def OnMouseMotion(self, evt):
+    #     if evt.Dragging() and evt.LeftIsDown():
+    #         dPos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
+    #         nPos = (self.wPos.x + (dPos.x - self.ldPos.x),
+    #                 self.wPos.y + (dPos.y - self.ldPos.y))
+    #         self.Move(nPos)
+
+    # def OnMouseLeftUp(self, evt):
+    #     if self.panel.HasCapture():
+    #         self.panel.ReleaseMouse()
+
+    # def OnRightUp(self, evt):
+    #     self.Show(False)
+    #     self.Destroy()
  
 class PDFWindow(wx.ScrolledWindow):
     """ This example class implements a PDF Viewer Window, handling Zoom and Scrolling """
@@ -103,7 +188,8 @@ class PDFWindow(wx.ScrolledWindow):
                 self.Refresh()
                 
 class curvepanel(wx.Panel):
-	def __init__(self,parent,curveobj):
+	def __init__(self,parent,curveobj,mainframe):
+    		self.mainframe=mainframe
 		wx.Panel.__init__(self,parent)
 		self.fulsizer=wx.BoxSizer(wx.VERTICAL)
 		self.curve=curveobj
@@ -113,13 +199,20 @@ class curvepanel(wx.Panel):
 		self.inputtitle.AppendText(self.curve.name)
 		self.titlesizer.Add(self.titlabel,1,wx.EXPAND)
 		self.titlesizer.Add(self.inputtitle,1,wx.EXPAND)
-
 		self.tabletext=wx.TextCtrl(self,style=wx.TE_MULTILINE)
 		for i in range(0,len(self.curve.x)):
 			self.tabletext.append(str(self.curve.x[i]+" : "+str(self.curve.y[i])))
+		self.delbutton=wx.Button(self,-1, 'Delete', (50, 130))
+		self.Bind(wx.EVT_BUTTON, self.OnClick)
 		self.fulsizer.Add(self.titlesizer)
 		self.fulsizer.Add(self.tabletext)
+		self.fulsizer.Add(self.delbutton)
 		self.SetSizer(self.fulsizer)
+	def OnClick(self,event):
+		self.mainframe.deletefunc(self.curve)
+	def save(self):
+		self.curve.name=inputtitle.GetLineText(0)
+		return self.curve
 
 class CurveNoteBook(wx.Notebook):
     """
@@ -127,7 +220,7 @@ class CurveNoteBook(wx.Notebook):
     """
  
     #----------------------------------------------------------------------
-    def __init__(self, parent,curvelist):
+    def __init__(self, parent,curvelist,mainframe):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
@@ -135,12 +228,18 @@ class CurveNoteBook(wx.Notebook):
                              #wx.BK_LEFT
                              #wx.BK_RIGHT
                              )
+        self.mainframe=mainframe
  
         # Create the first tab and add it to the notebook
         for curve in curvelist:
-        	curvetab=curvepanel(self,curve)
+        	curvetab=curvepanel(self,curve,mainframe)
         	#curvetab.SetBackgroundColour("Gray")
         	self.AddPage(curvetab, curve.name)
+        def save(self):
+		clist=[]
+		for curve in pages:
+			clist.append(curve.save())
+		return clist	
 
 class GraphNoteBook(wx.Notebook):
     """
@@ -148,7 +247,8 @@ class GraphNoteBook(wx.Notebook):
     """
  
     #----------------------------------------------------------------------
-    def __init__(self, parent,graphlist):
+    def __init__(self, parent,graphlist,mainframe):
+        self.mainframe=mainframe
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
@@ -158,18 +258,24 @@ class GraphNoteBook(wx.Notebook):
                              )
         self.pages=[]
         for graph in graphlist:
-        	graphtab=grPanel(self,graph)
+        	graphtab=grPanel(self,graph,mainframe)
         	self.pages.append(graphtab)
         	#curvetab.SetBackgroundColour("Gray")
         	self.AddPage(graphtab, "Graph")
  
         # Create the first tab and add it to the notebook
-    	
+    def save(self):
+	glist=[]
+	for graph in pages:
+		glist.append(graph.save())
+	return glist	
 
 
 class grPanel(wx.Panel):
-	def __init__(self,parent,graphobj):
+	def __init__(self,parent,graphobj,mainframe):
+    		self.mainframe=mainframe
 		wx.Panel.__init__(self,parent)
+		self.grobj=graphobj
 		self.sizer=wx.BoxSizer(wx.VERTICAL)
 		#self.sizer2=wx.BoxSizer(wx.HORIZONTAL)
 		#self.curvepanels=[]
@@ -214,6 +320,8 @@ class grPanel(wx.Panel):
 		self.inputmaxy.AppendText(str(graphobj.maxy))
 		self.maxysizer.Add(self.maxylabel,1,wx.EXPAND)
 		self.maxysizer.Add(self.inputmaxy,1,wx.EXPAND)
+		self.delbutton=wx.Button(self,-1, 'Delete', (50, 130))
+		self.Bind(wx.EVT_BUTTON, self.OnClick)
 		
 		image=graphobj.rectangle
 		cv2.imwrite('temp.jpg',image)
@@ -247,61 +355,34 @@ class grPanel(wx.Panel):
     		self.sizer.Add(self.imageCtrl)
 		#self.titlabel=wx.StaticText(self,-1,"Title:")
 		self.graph=graphobj
-		self.curvenote=CurveNoteBook(self,graphobj.curveList)
-		# h, w = graphobj.image.shape[:2]
-  #       #wxImage = wx.ImageFromBuffer(w, h, image)
-  #       H=h
-  #       W=w
-  #       if(h>pictureheight):
-  #           H=pictureheight
-  #           W=(pictureheight*w)/h
-  #       if(W>picturewidth):
-  #           H=(picturewidth*H)/W
-  #           W=picturewidth
-  #       #newimage=np.zeros((H,W,3), np.uint8)
-  #       #newimage=cv2.resize(image,(H,W))
-  #       #image=newimage
-  #       wxImage = wx.ImageFromBuffer( w,h, graphobj.image)
-  #       wxImage=wxImage.Scale(W,H)
-  #       print W
-  #       print H
-  #       bitmap = wx.BitmapFromImage(wxImage)
-  #       self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
-  #       self.sizer.Add(self.imageCtrl,1,wx.EXPAND)
-        #self.Refresh()
-		#self.sizer.Add(self.sizer2,1,wx.EXPAND)
-		#self.sizer.Add(self.titlabel,1,wx.EXPAND)
+		self.curvenote=CurveNoteBook(self,graphobj.curveList,mainframe)
+		
 		self.sizer.Add(self.curvenote,1,wx.EXPAND)
+		self.sizer.Add(self.delbutton)
     		self.SetSizer(self.sizer)
     		print 'yo'
-		# ht, wt = graphobj.image.shape[:2]
-  #       #wxImage = wx.ImageFromBuffer(w, h, image)
-  #       H=ht
-  #       W=wt
-  #       if(ht>pictureheight):
-  #           H=pictureheight
-  #           W=(pictureheight*wt)/ht
-  #       if(W>picturewidth):
-  #           H=(picturewidth*H)/W
-  #           W=picturewidth
-  #       #newimage=np.zeros((H,W,3), np.uint8)
-  #       #newimage=cv2.resize(image,(H,W))
-  #       #image=newimage
-  #       wxImage = wx.ImageFromBuffer( w,h, graphobj.image)
-  #       wxImage=wxImage.Scale(W,H)
-  #       print W
-  #       print H
-  #       bitmap = wx.BitmapFromImage(wxImage)
-  #       self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
-  #       self.sizer.Add(self.imageCtrl,1,wx.EXPAND)
-        #self.Refresh()
+		
+        def OnClick(self,event):
+        	print "Here"
+        	self.mainframe.deletefunc(self.grobj)
+		#wx.PostEvent(self.mainframe, DeleteEvent(self.grobj))
+	def save(self):
+		self.grobj.xlabellabel=inputxlabel.GetLineText(0)
+		self.grobj.ylabellabel=inputylabel.GetLineText(0)
+		self.grobj.minxlabel=float(inputminx.GetLineText(0))
+		self.grobj.maxxlabel=float(inputmaxx.GetLineText(0))
+		self.grobj.minylabel=float(inputminy.GetLineText(0))
+		self.grobj.maxylabel=float(inputmaxy.GetLineText(0))
+		self.curvelist=self.curvenote.save()
+		return self.grobj
 class pagePanel(wx.Panel):
-	def __init__(self,parent,page):
+	def __init__(self,parent,page,mainframe):
 		print '3'
 		wx.Panel.__init__(self,parent)
+    		self.mainframe=mainframe
 		self.page=page
 		#self.pageviewnote=wx.Notebook(self)
-		self.graphnote=GraphNoteBook(self,page.graphList)
+		self.graphnote=GraphNoteBook(self,page.graphList,mainframe)
 		self.panel1=wx.Panel(self.graphnote)
 		image=page.pdfImage
 		cv2.imwrite('temp.jpg',image)
@@ -330,6 +411,10 @@ class pagePanel(wx.Panel):
 		self.sizer=wx.BoxSizer(wx.VERTICAL)
 		self.sizer.Add(self.graphnote,1,wx.EXPAND)
     		self.SetSizer(self.sizer)
+    	def save(self):
+    		newglist=self.graphnote.save()
+    		self.page.graphList=newglist
+    		return self.page
 
 class PageNoteBook(wx.Notebook):
     """
@@ -337,13 +422,14 @@ class PageNoteBook(wx.Notebook):
     """
  
     #----------------------------------------------------------------------
-    def __init__(self, parent,pagelist):
+    def __init__(self, parent,pagelist,mainframe):
         print '502'
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
         self.pan=wx.Panel(self)
         self.viewersizer=wx.BoxSizer(wx.VERTICAL)
         self.viewer=PDFWindow(self.pan)
     	self.viewer.LoadDocument(parent.doc.pdf_path)
+      	self.mainframe=mainframe
     	self.viewer.SetFocus()
     	self.viewersizer.Add(self.viewer,1,wx.EXPAND)
     	self.pan.SetSizer(self.viewersizer)
@@ -355,22 +441,28 @@ class PageNoteBook(wx.Notebook):
         print '2'
         self.pages=[]
         for page in pagelist:
-        	pagetab=pagePanel(self,page)
+        	pagetab=pagePanel(self,page,mainframe)
         	self.pages.append(pagetab)
         	#curvetab.SetBackgroundColour("Gray")
         	self.AddPage(pagetab, "Page"+str(page.pageno))
         self.AddPage(self.pan,'View PDF')
+    def save(self):
+    	newpagelist=[]
+    	for pagetab in self.pages:
+    		newpagelist.append(pagetab.save())
+    	return newpagelist
+    		
  
         # Create the first tab and add it to the notebook
 class docPanel(wx.Panel):
-	def __init__(self,parent,docu):
+	def __init__(self,parent,docu,mainframe):
 		
 		wx.Panel.__init__(self,parent)
+    		self.mainframe=mainframe
 		self.doc=docu
 		print '2'
-		self.pagenote=PageNoteBook(self,docu.pageList)
+		self.pagenote=PageNoteBook(self,docu.pageList,mainframe)
 		print '3'
-		
 		#self.pdfpanel=wx.Panel(self.pagenote)
 		# self.buttonpanel = pdfButtonPanel(pdfpanel, wx.NewId(),
   #                               wx.DefaultPosition, wx.DefaultSize, 0)
@@ -400,15 +492,20 @@ class docPanel(wx.Panel):
     		#self.pagenote.AddPage(self.viewer,'View PDF')
 		self.sizer.Add(self.pagenote,1,wx.EXPAND)
     		self.SetSizer(self.sizer)
+    		
+	def save(self):
+		pagelist=self.pagenote.save()
+		self.doc.pageList=pagelist
+		return self.doc
 
 
 class DocNoteBook(wx.Notebook):
     """
     Notebook class
     """
-    print 'here'
+    #print 'here'
     #----------------------------------------------------------------------
-    def __init__(self, parent,doclist):
+    def __init__(self, parent,doclist,mainframe):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
@@ -417,6 +514,8 @@ class DocNoteBook(wx.Notebook):
                              #wx.BK_RIGHT
                              )
         self.pages=[]
+        self.doclist=doclist
+        self.mainframe=mainframe
         self.initdocs(doclist)
     def initdocs(self,doclist):
        for i in range(0,len(self.pages)):
@@ -424,11 +523,17 @@ class DocNoteBook(wx.Notebook):
        self.pages = []
        for doc in doclist:
         	print '1'
-        	doctab=docPanel(self,doc)
+        	doctab=docPanel(self,doc,self.mainframe)
         	#curvetab.SetBackgroundColour("Gray")
         	self.pages.append(doctab)
         	self.AddPage(doctab, doc.filename)
         # Create the first tab and add it to the notebook
+    def savefiles(self):
+    	newdoclist=[]
+    	for doc in self.pages:
+    		newdoclist.append(doc.save())
+    	return newdoclist
+    	
 class DemoFrame(wx.Frame):
     """
     Frame that holds all other widgets
