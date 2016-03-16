@@ -50,10 +50,10 @@ class TestPopup(wx.Frame):
        	self.SetSizer(self.sizer2)
        	self.sizer2.Fit(self)
     def OkButton(self,e):
-    	x0 = self.panel.x0
-        y0 = self.panel.y0
-        x1 = self.panel.x1
-        y1 = self.panel.y1
+    	x0 = int(self.panel.x0)
+        y0 = int(self.panel.y0)
+        x1 = int(self.panel.x1)
+        y1 = int(self.panel.y1)
     	self.mainframe.crop(self.page,(x0,y0,x1,y1))
     	#self.Close()
     def CancelButton(self,e):
@@ -233,15 +233,16 @@ class CurveNoteBook(wx.Notebook):
                              #wx.BK_RIGHT
                              )
         self.mainframe=mainframe
- 
+        self.pages=[]
         # Create the first tab and add it to the notebook
         for curve in curvelist:
         	curvetab=curvepanel(self,curve,mainframe)
+            	self.pages.append(curvetab)
         	#curvetab.SetBackgroundColour("Gray")
         	self.AddPage(curvetab, curve.name)
-        def save(self):
+    def save(self):
 		clist=[]
-		for curve in pages:
+		for curve in self.pages:
 			clist.append(curve.save())
 		return clist	
 
@@ -270,7 +271,7 @@ class GraphNoteBook(wx.Notebook):
         # Create the first tab and add it to the notebook
     def save(self):
 	glist=[]
-	for graph in pages:
+	for graph in self.pages:
 		glist.append(graph.save())
 	return glist	
 
@@ -325,7 +326,10 @@ class grPanel(wx.Panel):
 		self.maxysizer.Add(self.maxylabel,1,wx.EXPAND)
 		self.maxysizer.Add(self.inputmaxy,1,wx.EXPAND)
 		self.delbutton=wx.Button(self,-1, 'Delete', (50, 130))
-		self.Bind(wx.EVT_BUTTON, self.OnClick)
+		self.delbutton.Bind(wx.EVT_BUTTON, self.OnClick)
+		
+		self.upbutton=wx.Button(self,-1, 'Update', (50, 130))
+		self.upbutton.Bind(wx.EVT_BUTTON, self.updategraph)
 		
 		image=graphobj.rectangle
 		cv2.imwrite('temp.jpg',image)
@@ -361,22 +365,30 @@ class grPanel(wx.Panel):
 		self.graph=graphobj
 		self.curvenote=CurveNoteBook(self,graphobj.curveList,mainframe)
 		
-		self.sizer.Add(self.curvenote,1,wx.EXPAND)
+		self.sizer.Add(self.curvenote)
 		self.sizer.Add(self.delbutton)
+		self.sizer.Add(self.upbutton)
     		self.SetSizer(self.sizer)
     		print 'yo'
 		
+	def updategraph(self,e):
+		gr=self.save()
+		gr.fillData()
+		self.mainframe.RefreshTree()
+		# self.mainframe.docnote.SetSelection(gr.document.docid)
+  #           	self.mainframe.docnote.pages[gr.document.docid].pagenote.SetSelection(gr.pageno)
+  #           	self.mainframe.docnote.pages[gr.document.docid].pagenote.pages[gr.pageno].graphnote.SetSelection(gr.graphID)
         def OnClick(self,event):
         	print "Here"
         	self.mainframe.deletefunc(self.grobj)
 		#wx.PostEvent(self.mainframe, DeleteEvent(self.grobj))
 	def save(self):
-		self.grobj.xlabellabel=inputxlabel.GetLineText(0)
-		self.grobj.ylabellabel=inputylabel.GetLineText(0)
-		self.grobj.minxlabel=float(inputminx.GetLineText(0))
-		self.grobj.maxxlabel=float(inputmaxx.GetLineText(0))
-		self.grobj.minylabel=float(inputminy.GetLineText(0))
-		self.grobj.maxylabel=float(inputmaxy.GetLineText(0))
+		self.grobj.xlabellabel=self.inputxlabel.GetLineText(0)
+		self.grobj.ylabellabel=self.inputylabel.GetLineText(0)
+		self.grobj.minxlabel=float(self.inputminx.GetLineText(0))
+		self.grobj.maxxlabel=float(self.inputmaxx.GetLineText(0))
+		self.grobj.minylabel=float(self.inputminy.GetLineText(0))
+		self.grobj.maxylabel=float(self.inputmaxy.GetLineText(0))
 		self.curvelist=self.curvenote.save()
 		return self.grobj
 class pagePanel(wx.Panel):

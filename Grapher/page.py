@@ -49,6 +49,7 @@ class page(threading.Thread):
 
     def run(self):
         self.process()
+        print "Page Done"
         wx.PostEvent(self.parent, ResultEvent(5))
 
     def findAllRectangles(self):
@@ -332,17 +333,51 @@ class page(threading.Thread):
             self.graphList.append(graphObj)
                 
             
-    def processGraphList(self):
+    # def processGraphList(self):
 
+    #     # f=open("log.txt","ab")
+    #     # for g in self.graphList:
+    #     #     g.start()
+
+    #     # for g in self.graphList:
+    #     #     g.join()
+    def processGraphList(self):
+        f=open("log.txt","ab")
         for g in self.graphList:
             print "ok"
-            '''
-            g.findLabel()
-            g.findLabelText()
-            g.findGradient()
-            g.findMarkings()
-            g.findCrop()
-            g.findColorNnumOfPlots()
-            #g.fillData()
-            '''
+            try:
+                g.findLabel()
+            except:
+                print "Labels not found"
+            if g.isgraph==False:
+                print "Not a graph "
+                continue
+            else:
+                print "Object is Graph"
+                try:
+                    g.findLabelText()
+                except: 
+                    print "Label Text were not recognised by OCR"
+                #g.findGradient()
+                try:
+                    g.findMarkings()
+                except:
+                    print "Markings not detectd"
+                if g.istextbox==False:
+                    try:
+                        g.findonlycolors()
+                    except:
+                        print "colors not found in text box"
+                else:
+                    try:
+                        g.findCrop()
+                        g.findColorNnumOfPlots()
+                    except:
+                        print "Colors Not found by method 2 "
+            print g.istextbox       
+            print "the curvelist is: "
+            for i in g.curveList:
+                print i.color , i.name
+
+            g.fillData()
 

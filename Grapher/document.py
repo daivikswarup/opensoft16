@@ -7,6 +7,11 @@ import threading
 import os
 import wx
 from Utils import ResultEvent
+from pyPdf import PdfFileReader, PdfFileWriter
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, inch, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 #import pyPdf
 
 class document(threading.Thread):
@@ -23,6 +28,9 @@ class document(threading.Thread):
 
 	def process(self):
 		print self.pdf_path
+		newpath = r'images/' 
+		if not os.path.exists(newpath):
+    			os.makedirs(newpath)
 		Extraction = subprocess.check_output("gs -sDEVICE=jpeg -o  images/file-"+ str(self.job_number) +"-%02d.jpg -r158 " +self.pdf_path,shell=True)
 		
 		num_vector = map(int, re.findall(r'\d+', Extraction))
@@ -55,3 +63,95 @@ class document(threading.Thread):
 	def run(self):
 		self.process()
 		wx.PostEvent(self.parent, ResultEvent(10))
+	def createpdf(self):
+		pdfpath = self.pdf_path
+		#pdfpath = 'pdf/a.pdf'
+		output = PdfFileWriter()
+		pdfOne = PdfFileReader(file( pdfpath, "rb"))
+		pgcnt=0
+		print 'pdfa'
+		newpath = r'/pdfs/' 
+		if not os.path.exists(newpath):
+    			os.makedirs(newpath)
+		for pg in self.pageList:
+			print 'page'
+			print pgcnt
+			output.addPage(pdfOne.getPage(pgcnt))
+			for gr in pg.graphList:
+				print 'graph'
+				#if gr.istable:
+				################### create a Temp pdf with data table  for each graph#######################
+				doc = SimpleDocTemplate(newpath+"temp.pdf", pagesize=A4, rightMargin=30,leftMargin=30, topMargin=30,bottomMargin=18)
+				doc.pagesize = landscape(A4)
+				#doc.pagesize = portrait(A4)
+				elements = []
+				datapoints = min((gr.nummarkX+2)*12,50)
+				deltax = int((gr.x2-gr.x4-2)/datapoints)
+				flag =0
+				if len(gr.curveList)!=0:
+					flag =1
+					data = [[0 for x in range(len(gr.curveList)+1)] for x in range(0,datapoints) ]
+					data[0][0] = "X - axis"
+					for k in range(0,len(gr.curveList)):
+						if gr.curveList[k].name == "":
+							data[0][k+1] = "curve " +str(k+1)
+						else:
+							data[0][k+1] = gr.curveList[k].name
+					j=0
+					try:
+						for i in range(0,datapoints-1):
+							data[i+1][0] = gr.curveList[0].x[j]
+							for k in range(0,len(gr.curveList)):
+								data[i+1][k+1] = gr.curveList[k].y[j]
+							j= j+ deltax
+					except:
+						print "error while getting table"
+						pass		
+
+
+
+
+					print data
+
+					#TODO: Get this line right instead of just copying it from the docs
+					style = TableStyle([('ALIGN',(1,1),(-2,-2),'RIGHT'),
+					                       ('TEXTCOLOR',(1,1),(-2,-2),colors.red),
+					                       ('VALIGN',(0,0),(0,-1),'TOP'),
+					                       ('TEXTCOLOR',(0,0),(0,-1),colors.blue),
+					                       ('ALIGN',(0,-1),(-1,-1),'CENTER'),
+					                       ('VALIGN',(0,-1),(-1,-1),'MIDDLE'),
+					                       ('TEXTCOLOR',(0,-1),(-1,-1),colors.green),
+					                       ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+					                       ('BOX', (0,0), (-1,-1), 0.25, colors.black),
+					                       ])
+					 
+					#Configure style and word wrap
+					s = getSampleStyleSheet()
+					s = s["BodyText"]
+					s.wordWrap = 'CJK'
+					#data2 = [[Paragraph(cell, s) for cell in row] for row in data]
+					t=Table(data)
+					t.setStyle(style)
+					 
+					#Send the data and build the file
+					elements.append(t)
+					doc.build(elements)
+					pdfTwo = PdfFileReader(file(newpath+"temp.pdf", "rb"))
+					temppage = pdfTwo.getNumPages()
+
+					for i in range(0,temppage):
+						output.addPage(pdfTwo.getPage(i))
+
+				#plt.subplot(len(gr.textBoxImages)+1,1,1),plt.imshow(gr.rectangle)
+				
+
+
+			#################### merge the original pdf and temp pdf for each page of document #######################
+			
+			
+			
+			pgcnt=pgcnt+1
+		######################################## WRITE THE FINAL PDF ################################################ 
+		outputStream = file(newpath+"output.pdf", "wb")
+		output.write(outputStream)
+		outputStream.close()
