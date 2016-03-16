@@ -3,6 +3,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from graph import graph
 import threading
+import wx
+from Utils import ResultEvent
 min_length = 0.1
 max_length = 0.9
 threshold = 220
@@ -31,8 +33,9 @@ class Lines:
 
 # This class process a single page of the document
 class page(threading.Thread):
-    def __init__(self,document,pageno):
+    def __init__(self,document,pageno,parent):
         threading.Thread.__init__(self)
+        self.parent=parent
         self.pdfImage=None
         self.graphList = []
         self.document=document
@@ -46,6 +49,7 @@ class page(threading.Thread):
 
     def run(self):
         self.process()
+        wx.PostEvent(self.parent, ResultEvent(5))
 
     def findAllRectangles(self):
         img = cv2.cvtColor(self.pdfImage,cv2.COLOR_BGR2GRAY)

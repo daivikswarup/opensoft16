@@ -20,7 +20,7 @@ class graph:
 
         # page in which the graph is present
         self.pageno = pageno
-
+        #self.graphID=graphID
         #coordinates
         self.x2 = x2
         self.x4 = x4

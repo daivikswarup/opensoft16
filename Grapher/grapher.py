@@ -5,115 +5,28 @@ from top import top
 import wx.lib.wxcairo as wxcairo
 import sys
 from grPanel import *
+import threading
 from document import document
+from Utils import ResultEvent,EVT_RESULT_ID
 # import poppler
 # import matplotlib.pyplot as plt
 picturewidth=600
 pictureheight=600
-class PDFWindow(wx.ScrolledWindow):
-    """ This example class implements a PDF Viewer Window, handling Zoom and Scrolling """
-
-    MAX_SCALE = 2
-    MIN_SCALE = 1
-    SCROLLBAR_UNITS = 20  # pixels per scrollbar unit
-
-    def __init__(self, parent):
-        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY,size=(600,600))
-        # Wrap a panel inside
-        self.panel = wx.Panel(self)
-        # Initialize variables
-        self.n_page = 0
-        self.scale = 1
-        self.document = None
-        self.n_pages = None
-        self.current_page = None
-        self.width = None
-        self.height = None
-        # Connect panel events
-        self.pdfwindow = None
-        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.panel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        self.panel.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-
-    def LoadDocument(self, file):
-        self.document = poppler.document_new_from_file("file://" + file, None)
-        self.n_pages = self.document.get_n_pages()
-        self.current_page = self.document.get_page(self.n_page)
-        self.width, self.height = self.current_page.get_size() 
-        self._UpdateSize()
-
-    def OnPaint(self, event):
-        dc = wx.PaintDC(self.panel)
-        cr = wxcairo.ContextFromDC(dc)
-        cr.set_source_rgb(1, 1, 1)  # White background
-        if self.scale != 1:
-            cr.scale(self.scale, self.scale)
-        cr.rectangle(0.0, 0.0, self.width, self.height)
-        cr.fill()
-        self.current_page.render(cr)
-
-    def OnLeftDown(self, event):
-        self._UpdateScale(self.scale + 0.2)
-
-    def OnRightDown(self, event):
-        self._UpdateScale(self.scale - 0.2)
-
-    def _UpdateScale(self, new_scale):
-        if new_scale >= PDFWindow.MIN_SCALE and new_scale <= PDFWindow.MAX_SCALE:
-            self.scale = new_scale
-            # Obtain the current scroll position
-            prev_position = self.GetViewStart() 
-            # Scroll to the beginning because I'm going to redraw all the panel
-            self.Scroll(0, 0) 
-            # Redraw (calls OnPaint and such)
-            self.Refresh() 
-            # Update panel Size and scrollbar config
-            self._UpdateSize()
-            # Get to the previous scroll position
-            self.Scroll(prev_position[0], prev_position[1]) 
-
-    def _UpdateSize(self):
-        u = PDFWindow.SCROLLBAR_UNITS
-        self.panel.SetSize((self.width*self.scale, self.height*self.scale))
-        self.SetScrollbars(u, u, (self.width*self.scale)/u, (self.height*self.scale)/u)
-
-    def OnKeyDown(self, event):
-        update = True
-        # More keycodes in http://docs.wxwidgets.org/stable/wx_keycodes.html#keycodes
-        keycode = event.GetKeyCode() 
-        if keycode in (wx.WXK_PAGEDOWN, wx.WXK_SPACE):
-            next_page = self.n_page + 1
-        elif keycode == wx.WXK_PAGEUP:
-            next_page = self.n_page - 1
-        else:
-            update = False
-        if update and (next_page >= 0) and (next_page < self.n_pages):
-                self.n_page = next_page
-                self.current_page = self.document.get_page(next_page)
-                self.Refresh()
 
 
-# class MyFrame(wx.Frame):
- 
-#     def __init__(self):
-#         wx.Frame.__init__(self, None, -1, "wxPdf Viewer", size=(800,600))
-#         self.pdfwindow = PDFWindow(self)
-#         self.pdfwindow.LoadDocument(sys.argv[1])
-#         self.pdfwindow.SetFocus() # To capture keyboard events
+def EVT_RESULT(win, func):
+   """Define Result Event."""
+   win.Connect(-1, -1, EVT_RESULT_ID, func)
 
- 
-# if __name__=="__main__":
-#     app = wx.App()
-#     f = MyFrame()
-#     f.Show()
-#     app.MainLoop()
 class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, None, -1, "Opensoft16",size=(1000,600))
         self.dirname=''
         self.docList=[]
         self.currentdoc=None
+
+        # refresh UI
+        EVT_RESULT(self,self.OnResult)
 
         self.initUI()
 
@@ -147,8 +60,8 @@ class MainWindow(wx.Frame):
         
         #Sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.tree_ctrl, 1, wx.SHAPED)
-        self.sizer.Add(self.docnote, 1, wx.SHAPED)
+        self.sizer.Add(self.tree_ctrl, 1, wx.EXPAND)
+        self.sizer.Add(self.docnote, 1, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
@@ -167,12 +80,15 @@ class MainWindow(wx.Frame):
         """ Open a file"""
         dlg = wx.FileDialog(self, "Choose files", self.dirname, ".", "*.pdf", wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
+        #ProgressBar
 
+            self.totalpages=0
+            self.pagesdone=0
+            self.progress=wx.ProgressDialog('Progress','Starting...')
             for address in dlg.GetPaths():
                 d = document(self,address,len(self.docList))
                 d.start()
                 self.docList.append(d)
-
             self.RefreshTree()
             # for d in self.docList:
             #     d.join()
@@ -181,18 +97,31 @@ class MainWindow(wx.Frame):
             #self.root = self.tree_ctrl.AddRoot('Files')
             
             #self.tree_ctrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged, id=1)
-            
-            #self.sizer.Fit(self)
 
         dlg.Destroy()
+
+    def OnResult(self,event):
+        if event.data is 10:
+            self.RefreshTree()
+        if event.data is 5:
+            self.pagesdone=self.pagesdone+1
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
+            if self.pagesdone==self.totalpages:
+                self.progress.Destroy()
+        if event.data is 15:
+            self.totalpages=self.totalpages+1
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
 
     def RefreshTree(self):
         print"Refreshing Tree"
         self.tree_ctrl.DeleteAllItems()
         self.root = self.tree_ctrl.AddRoot('Files')
         cntdoc=0
-        self.docnote.initdocs(self.docList)        #self.rightpanel.Refresh()
+        self.sizer.Remove(self.docnote)
+        self.docnote=DocNoteBook(self,self.docList)        #self.rightpanel.Refresh()
+        self.sizer.Add(self.docnote,1,wx.EXPAND)
         #self.rightsizer.Add(self.docnote,wx.ALL|wx.EXPAND, 5)
+        print 'here'
         for doc in self.docList:
             currentdoc=self.tree_ctrl.AppendItem(self.root,"doc_"+str(cntdoc))
            #print currentdoc.GetID()
@@ -202,12 +131,14 @@ class MainWindow(wx.Frame):
             #print currentdoc.__class__.__name__
             cntdoc=cntdoc+1
             cntpage=1
+            print 'x'
             for page in doc.pageList:
                 currentpage= self.tree_ctrl.AppendItem(currentdoc,"Page_"+str(cntpage))
                 cntpage=cntpage+1
                 #self.treemap[currentpage]=page
                 self.tree_ctrl.SetItemPyData(currentpage, page)
                 cntgraph=1
+                print 'yo'
                 for gr in page.graphList:
                     currentgraph=self.tree_ctrl.AppendItem(currentpage,"Graph_"+str(cntgraph))
                     self.tree_ctrl.SetItemPyData(currentgraph, gr)
@@ -216,6 +147,7 @@ class MainWindow(wx.Frame):
                     #self.sizer2.Add(tempimage,1,wx.EXPAND)
         #self.leftpanel.Refresh()
         self.tree_ctrl.ExpandAll()
+        self.sizer.Fit(self)
         
     def OnSelChanged(self, event):
         '''Method called when selected item is changed
@@ -227,33 +159,38 @@ class MainWindow(wx.Frame):
     def OnActivated(self, evt):
         print "OnActivated:    "
         obj=self.tree_ctrl.GetItemData(evt.GetItem()).GetData()
-        # if obj.__class__.__name__=='document':
-        #     pass
-        # if obj.__class__.__name__=='page':
-        #     print 'page'
-        #     image=obj.pdfImage
-        #     h, w = image.shape[:2]
-        #     #wxImage = wx.ImageFromBuffer(w, h, image)
-        #     H=h
-        #     W=w
-        #     if(h>pictureheight):
-        #         H=pictureheight
-        #         W=(pictureheight*w)/h
-        #     if(W>picturewidth):
-        #         H=(picturewidth*H)/W
-        #         W=picturewidth
-        #     #newimage=np.zeros((H,W,3), np.uint8)
-        #     #newimage=cv2.resize(image,(H,W))
-        #     #image=newimage
-        #     wxImage = wx.ImageFromBuffer( w,h, image)
-        #     wxImage=wxImage.Scale(W,H)
-        #     print W
-        #     print H
-        #     bitmap = wx.BitmapFromImage(wxImage)
-        #     self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
-        #     self.rightpanel.Refresh()
-        # if obj.__class__.__name__=='graph':
-        #     print 'graph'
+        if obj.__class__.__name__=='document':
+            self.docnote.SetSelection(obj.docid)
+        if obj.__class__.__name__=='page':
+            self.docnote.SetSelection(obj.document.docid)
+            self.docnote.pages[obj.document.docid].SetSelection(obj.pageno)
+            # print 'page'
+            # image=obj.pdfImage
+            # h, w = image.shape[:2]
+            # #wxImage = wx.ImageFromBuffer(w, h, image)
+            # H=h
+            # W=w
+            # if(h>pictureheight):
+            #     H=pictureheight
+            #     W=(pictureheight*w)/h
+            # if(W>picturewidth):
+            #     H=(picturewidth*H)/W
+            #     W=picturewidth
+            # #newimage=np.zeros((H,W,3), np.uint8)
+            # #newimage=cv2.resize(image,(H,W))
+            # #image=newimage
+            # wxImage = wx.ImageFromBuffer( w,h, image)
+            # wxImage=wxImage.Scale(W,H)
+            # print W
+            # print H
+            # bitmap = wx.BitmapFromImage(wxImage)
+            # self.imageCtrl = wx.StaticBitmap(self.rightpanel, wx.ID_ANY,bitmap)
+            # self.rightpanel.Refresh()
+        if obj.__class__.__name__=='graph':
+            self.docnote.SetSelection(obj.document.docid)
+            self.docnote.pages[obj.document.docid].SetSelection(obj.pageno)
+            #self.docnote.pages[obj.document.docid].paged[obj.pageno.SetSelection()
+            # print 'graph'
             # image=obj.image
             # plt.subplot(1,1,1),plt.imshow(image)
             # plt.show()
