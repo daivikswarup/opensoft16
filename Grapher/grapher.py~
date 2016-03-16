@@ -35,9 +35,9 @@ class MainWindow(wx.Frame):
         self.CreateStatusBar()
 
 
-        # #Splitter
-        # splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
-        # splitter.SetMinimumPaneSize(100)
+        #Splitter
+        splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
+        splitter.SetMinimumPaneSize(100)
         
         #Notebook
         self.docnote=DocNoteBook(self,self.docList,self)
@@ -68,17 +68,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Update, self.menuUpdate)
         self.Bind(wx.EVT_MENU, self.Process, self.menuProcess)
 
-        #TOOLBAR
-        # self.toolbar = self.CreateToolBar()
-        # opentool = self.toolbar.AddTool(wx.ID_ANY, 'OPEN',wx.Bitmap('open.png'))
-        # processtool = self.toolbar.AddLabLabelTool(5, 'Process',wx.Bitmap('process.jpg'))
-        # savetool = self.toolbar.AddLabelTool(wx.ID_ANY, 'Save',wx.Bitmap('save.png'))
-        # self.toolbar.Realize()
-
-        # self.Bind(wx.EVT_TOOL, self.OnOpen, opentool)
-        # self.Bind(wx.EVT_TOOL, self.Process, processtool)
-        # self.Bind(wx.EVT_TOOL, self.OnOpen, savetool)
-
         #To refresh on deletes/crops
         #self.Bind(DeleteEvent, self.deletefunc)
         
@@ -92,10 +81,9 @@ class MainWindow(wx.Frame):
         self.Show()
     def Process(self, e):
         self.menuProcess.Enable(False)
-        #self.toolbar.EnableTool(5,False)
         self.totalpages=0
         self.pagesdone=0
-        self.progress=wx.ProgressDialog('Progress','Starting...')
+        self.progress=wx.ProgressDialog('Progress','Starting...',style=wx.PD_CAN_SKIP)
         for d in self.docList:
             #d = document(self,address,len(self.docList))
             d.start()
@@ -140,8 +128,7 @@ class MainWindow(wx.Frame):
             # self.totalpages=0
             # self.pagesdone=0
             # self.progress=wx.ProgressDialog('Progress','Starting...')
-            #self.toolbar.EnableTool(5,True)
-            self.docList=[]
+
             for address in dlg.GetPaths():
                  d = document(self,address,len(self.docList))
                  #d.start()
@@ -165,12 +152,12 @@ class MainWindow(wx.Frame):
             self.RefreshTree()
         elif event.data is 5:
             self.pagesdone=self.pagesdone+1
-            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages processed')
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
             if self.pagesdone==self.totalpages:
                 self.progress.Destroy()
         elif event.data is 15:
             self.totalpages=self.totalpages+1
-            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages processed')
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
 
     def RefreshTree(self):
         print"Refreshing Tree"
@@ -183,7 +170,7 @@ class MainWindow(wx.Frame):
         #self.rightsizer.Add(self.docnote,wx.ALL|wx.EXPAND, 5)
         print 'here'
         for doc in self.docList:
-            currentdoc=self.tree_ctrl.AppendItem(self.root,doc.filename)
+            currentdoc=self.tree_ctrl.AppendItem(self.root,"doc_"+str(cntdoc))
            #print currentdoc.GetID()
             #self.treemap[currentdoc]=doc
             doc.docid=cntdoc

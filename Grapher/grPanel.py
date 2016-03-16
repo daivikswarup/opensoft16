@@ -203,9 +203,9 @@ class curvepanel(wx.Panel):
 		self.inputtitle.AppendText(self.curve.name)
 		self.titlesizer.Add(self.titlabel,1,wx.EXPAND)
 		self.titlesizer.Add(self.inputtitle,1,wx.EXPAND)
-		self.tabletext=wx.TextCtrl(self,style=wx.TE_MULTILINE)
+		self.tabletext=wx.StaticText(self)
 		for i in range(0,len(self.curve.x)):
-			self.tabletext.append(str(self.curve.x[i]+" : "+str(self.curve.y[i])))
+			self.tabletext.append(str(self.curve.x[i])+" : "+str(self.curve.y[i])+"\n")
 		self.delbutton=wx.Button(self,-1, 'Delete', (50, 130))
 		self.Bind(wx.EVT_BUTTON, self.OnClick)
 		self.fulsizer.Add(self.titlesizer)
