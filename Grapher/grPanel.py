@@ -383,13 +383,14 @@ class grPanel(wx.Panel):
         	self.mainframe.deletefunc(self.grobj)
 		#wx.PostEvent(self.mainframe, DeleteEvent(self.grobj))
 	def save(self):
-		self.grobj.xlabellabel=self.inputxlabel.GetLineText(0)
-		self.grobj.ylabellabel=self.inputylabel.GetLineText(0)
-		self.grobj.minxlabel=float(self.inputminx.GetLineText(0))
-		self.grobj.maxxlabel=float(self.inputmaxx.GetLineText(0))
-		self.grobj.minylabel=float(self.inputminy.GetLineText(0))
-		self.grobj.maxylabel=float(self.inputmaxy.GetLineText(0))
-		self.curvelist=self.curvenote.save()
+        	print 'saving graph'
+		self.grobj.xlabel=self.inputxlabel.GetLineText(0)
+		self.grobj.ylabel=self.inputylabel.GetLineText(0)
+		self.grobj.minx=float(self.inputminx.GetLineText(0))
+		self.grobj.maxx=float(self.inputmaxx.GetLineText(0))
+		self.grobj.miny=float(self.inputminy.GetLineText(0))
+		self.grobj.maxy=float(self.inputmaxy.GetLineText(0))
+		self.grobj.curvelist=self.curvenote.save()
 		return self.grobj
 class pagePanel(wx.Panel):
 	def __init__(self,parent,page,mainframe):
@@ -557,6 +558,8 @@ class DocNoteBook(wx.Notebook):
     	newdoclist=[]
     	for doc in self.pages:
     		newdoclist.append(doc.save())
+        print "d0p0g0"
+        print newdoclist[0].pageList[0].graphList[0].minx
     	return newdoclist
     	
 class DemoFrame(wx.Frame):
