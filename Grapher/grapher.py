@@ -25,6 +25,9 @@ class MainWindow(wx.Frame):
         self.dirname=''
         self.docList=[]
         self.currentdoc=None
+        newpath = r'images' 
+	if not os.path.exists(newpath):
+    		os.makedirs(newpath)
 
         # refresh UI
         EVT_RESULT(self,self.OnResult)
@@ -106,6 +109,7 @@ class MainWindow(wx.Frame):
 
         ######
         #Add update function here
+        
         self.RefreshTree()
         for doc in self.docList:
             doc.createpdf()

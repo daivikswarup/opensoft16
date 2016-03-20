@@ -27,9 +27,10 @@ class top:
 		# This function process all the pdfs in the docList
 		docList=[]
 		count = 0
+		#self,parent,pdf_path,job_number
 		for address in addresses:
-			e = document()
-			e.process(address,count)
+			e = document(self,address,0)
+			e.process()
 			docList.append(e)
 			count=count+1
 		#docList = []
@@ -39,7 +40,7 @@ class top:
 		#	d.process()
 		return docList
 x=top()
-docs=["a.pdf"]
+docs=["/home/daivik/opensoft/OpenSoft_Problem_February_23_2016.split/OpenSoft_Problem_February_23_2016.4.pdf"]
 ret=x.do(docs)
 count =0
 for doc in ret:

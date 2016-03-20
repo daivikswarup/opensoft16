@@ -757,8 +757,8 @@ class graph(threading.Thread):
                     
                     
                 for i in range(0,len(graphColor)):
-                    c = curve(graphColor[i],graphNamesList[i])
-                    
+                    c = curve(graphColor[i],graphNamesList[i],i,self.graphID,self.pageno,self.document.docid)
+                    print "found curve"
                      
                     self.curveList.append(c)
                 
@@ -805,7 +805,7 @@ class graph(threading.Thread):
             #     color[var][0] = 10.00
             #     color[var][1] = 10.00
             #     color[var][2] = 10.00
-            c = curve(color[var],"curve"+str(var))
+            c = curve(color[var],"curve"+str(var),var,self.graphID,self.pageno,self.document.docid)
             self.curveList.append(c)
             print color[var]
 
@@ -845,6 +845,12 @@ class graph(threading.Thread):
                     if self.image[j,i][0]<ar0[0] and self.image[j,i][2]<ar0[2] and self.image[j,i][1]<ar0[1] and self.image[j,i][0]>ar1[0] and self.image[j,i][2]>ar1[2] and self.image[j,i][1]>ar1[1]:
                         #replace image list with appropriatre  object
                         #if i< self.x4+1 +50 or last[k]== 0 or (self.maxy-(j-1-self.y4)*self.dy>=mean[k]-(self.maxy-self.miny)/20 and self.maxy-(j-1-self.y4)*self.dy<=mean[k]+(self.maxy-self.miny)/20) : #table[k,last[k]][1] last y value in the table
+                        # print self.maxx.__class__.__name__
+                        # print self.maxy.__class__.__name__
+                        # print self.minx.__class__.__name__
+                        # print self.miny.__class__.__name__
+                        # print self.x4.__class__.__name__
+                        # print self.curveList[k].y[int(last[k])].__class__.__name__
 
                         if last[k]== 0 or (self.maxy-(j-1-self.y4)*self.dy>=self.curveList[k].y[int(last[k])-self.x4-1]-(self.maxy-self.miny)/15 and self.maxy-(j-1-self.y4)*self.dy<self.curveList[k].y[int(last[k])-self.x4-1]+(self.maxy-self.miny)/15) : #table[k,last[k]][1] last y value in the table
                             current[k] = j

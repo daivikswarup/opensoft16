@@ -10,7 +10,7 @@ from document import document
 from graph import graph
 from Utils import ResultEvent,EVT_RESULT_ID,DeleteEvent,CropEvent
 # import poppler
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 picturewidth=600
 pictureheight=600
 
@@ -25,6 +25,9 @@ class MainWindow(wx.Frame):
         self.dirname=''
         self.docList=[]
         self.currentdoc=None
+        newpath = r'images' 
+		if not os.path.exists(newpath):
+    		os.makedirs(newpath)
 
         # refresh UI
         EVT_RESULT(self,self.OnResult)
@@ -35,9 +38,9 @@ class MainWindow(wx.Frame):
         self.CreateStatusBar()
 
 
-        #Splitter
-        splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
-        splitter.SetMinimumPaneSize(100)
+        # #Splitter
+        # splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
+        # splitter.SetMinimumPaneSize(100)
         
         #Notebook
         self.docnote=DocNoteBook(self,self.docList,self)
@@ -51,8 +54,8 @@ class MainWindow(wx.Frame):
         # Setting up the menu.
         filemenu= wx.Menu()
         self.menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
-        self.menuProcess = filemenu.Append(wx.ID_EXIT,"&Process"," Begin Processing")
-        self.menuUpdate = filemenu.Append(wx.ID_ANY, "&Update"," Update changes")
+        self.menuProcess = filemenu.Append(wx.ID_ANY,"&Process"," Begin Processing")
+        self.menuUpdate = filemenu.Append(wx.ID_ANY, "&Save"," Save to file")
         self.menuAbout= filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
         self.menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
 
@@ -68,6 +71,17 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Update, self.menuUpdate)
         self.Bind(wx.EVT_MENU, self.Process, self.menuProcess)
 
+        # TOOLBAR
+        # self.toolbar = self.CreateToolBar()
+        # opentool = self.toolbar.AddTool(wx.ID_ANY, 'OPEN',wx.Bitmap('open.png'))
+        # processtool = self.toolbar.AddLabLabelTool(5, 'Process',wx.Bitmap('process.jpg'))
+        # savetool = self.toolbar.AddLabelTool(wx.ID_ANY, 'Save',wx.Bitmap('save.png'))
+        # # self.toolbar.Realize()
+
+        # self.Bind(wx.EVT_TOOL, self.OnOpen, opentool)
+        # self.Bind(wx.EVT_TOOL, self.Process, processtool)
+        # self.Bind(wx.EVT_TOOL, self.OnOpen, savetool)
+
         #To refresh on deletes/crops
         #self.Bind(DeleteEvent, self.deletefunc)
         
@@ -81,9 +95,10 @@ class MainWindow(wx.Frame):
         self.Show()
     def Process(self, e):
         self.menuProcess.Enable(False)
+        #self.toolbar.EnableTool(5,False)
         self.totalpages=0
         self.pagesdone=0
-        self.progress=wx.ProgressDialog('Progress','Starting...',style=wx.PD_CAN_SKIP)
+        self.progress=wx.ProgressDialog('Progress','Starting...')
         for d in self.docList:
             #d = document(self,address,len(self.docList))
             d.start()
@@ -95,13 +110,18 @@ class MainWindow(wx.Frame):
         ######
         #Add update function here
         self.RefreshTree()
+        for doc in self.docList:
+            doc.createpdf()
+
     def OnAbout(self,e):
         # Create a message dialog box
         dlg = wx.MessageDialog(self, " To extract tables from graphs", wx.OK)
         dlg.ShowModal() # Shows it
         dlg.Destroy() # finally destroy it when finished.
     def crop(self,page,rect):
-        cropimage=page.pdfImage[rect[1]:rect[3]][rect[0]:rect[2]]
+        cropimage=page.pdfImage[rect[1]:rect[3],rect[0]:rect[2]]
+        #plt.imshow(cropimage)
+        #plt.show()
         newg=graph(page.document,page.pageno,rect[2],rect[0],rect[3],rect[1],page.pdfImage,cropimage)
         newg.fillData()
         print rect
@@ -128,7 +148,8 @@ class MainWindow(wx.Frame):
             # self.totalpages=0
             # self.pagesdone=0
             # self.progress=wx.ProgressDialog('Progress','Starting...')
-
+            #self.toolbar.EnableTool(5,True)
+            self.docList=[]
             for address in dlg.GetPaths():
                  d = document(self,address,len(self.docList))
                  #d.start()
@@ -152,12 +173,14 @@ class MainWindow(wx.Frame):
             self.RefreshTree()
         elif event.data is 5:
             self.pagesdone=self.pagesdone+1
-            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages processed')
+            self.progress.SetSize((200, 75))
             if self.pagesdone==self.totalpages:
                 self.progress.Destroy()
         elif event.data is 15:
             self.totalpages=self.totalpages+1
-            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages done')
+            self.progress.Update((self.pagesdone*100)/self.totalpages,str(self.pagesdone)+'/'+str(self.totalpages)+' pages processed')
+            self.progress.SetSize((200, 75))
 
     def RefreshTree(self):
         print"Refreshing Tree"
@@ -165,12 +188,12 @@ class MainWindow(wx.Frame):
         self.root = self.tree_ctrl.AddRoot('Files')
         cntdoc=0
         #self.sizer.Remove(self.docnote)
-        self.docnote.initdocs(self.docList)        #self.rightpanel.Refresh()
+                #self.rightpanel.Refresh()
         #self.sizer.Add(self.docnote,1,wx.EXPAND)
         #self.rightsizer.Add(self.docnote,wx.ALL|wx.EXPAND, 5)
         print 'here'
         for doc in self.docList:
-            currentdoc=self.tree_ctrl.AppendItem(self.root,"doc_"+str(cntdoc))
+            currentdoc=self.tree_ctrl.AppendItem(self.root,doc.filename)
            #print currentdoc.GetID()
             #self.treemap[currentdoc]=doc
             doc.docid=cntdoc
@@ -190,6 +213,8 @@ class MainWindow(wx.Frame):
                     currentgraph=self.tree_ctrl.AppendItem(currentpage,"Graph_"+str(cntgraph))
                     self.tree_ctrl.SetItemPyData(currentgraph, gr)
                     cntcurve=0
+                    print '____________________________________________________________________'
+                    print len(gr.curveList)
                     for curve in gr.curveList:
                         curve.graph=cntgraph
                         curve.curveid=cntcurve
@@ -200,6 +225,7 @@ class MainWindow(wx.Frame):
                 cntpage=cntpage+1
             cntdoc=cntdoc+1
         #self.leftpanel.Refresh()
+        self.docnote.initdocs(self.docList)
         self.tree_ctrl.ExpandAll()
         #self.sizer.Fit(self)
         

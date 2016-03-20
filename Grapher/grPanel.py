@@ -203,19 +203,19 @@ class curvepanel(wx.Panel):
 		self.inputtitle.AppendText(self.curve.name)
 		self.titlesizer.Add(self.titlabel,1,wx.EXPAND)
 		self.titlesizer.Add(self.inputtitle,1,wx.EXPAND)
-		self.tabletext=wx.StaticText(self)
+		self.tabletext=wx.TextCtrl(self,style=wx.TE_MULTILINE)
 		for i in range(0,len(self.curve.x)):
-			self.tabletext.append(str(self.curve.x[i])+" : "+str(self.curve.y[i])+"\n")
+			self.tabletext.AppendText(str(self.curve.x[i])+" : "+str(self.curve.y[i])+"\n")
 		self.delbutton=wx.Button(self,-1, 'Delete', (50, 130))
 		self.Bind(wx.EVT_BUTTON, self.OnClick)
-		self.fulsizer.Add(self.titlesizer)
-		self.fulsizer.Add(self.tabletext)
-		self.fulsizer.Add(self.delbutton)
+		self.fulsizer.Add(self.titlesizer,1)
+		self.fulsizer.Add(self.tabletext,6,wx.EXPAND)
+		self.fulsizer.Add(self.delbutton,1)
 		self.SetSizer(self.fulsizer)
 	def OnClick(self,event):
 		self.mainframe.deletefunc(self.curve)
 	def save(self):
-		self.curve.name=inputtitle.GetLineText(0)
+		self.curve.name=self.inputtitle.GetLineText(0)
 		return self.curve
 
 class CurveNoteBook(wx.Notebook):
@@ -239,6 +239,7 @@ class CurveNoteBook(wx.Notebook):
         	curvetab=curvepanel(self,curve,mainframe)
             	self.pages.append(curvetab)
         	#curvetab.SetBackgroundColour("Gray")
+                print curve.name
         	self.AddPage(curvetab, curve.name)
     def save(self):
 		clist=[]
@@ -365,14 +366,20 @@ class grPanel(wx.Panel):
 		self.graph=graphobj
 		self.curvenote=CurveNoteBook(self,graphobj.curveList,mainframe)
 		
-		self.sizer.Add(self.curvenote)
+		#self.sizer.Add(self.curvenote)
 		self.sizer.Add(self.delbutton)
 		self.sizer.Add(self.upbutton)
-    		self.SetSizer(self.sizer)
+        	self.sizerf=wx.BoxSizer(wx.HORIZONTAL)
+        	self.sizerf.Add(self.sizer,1,wx.EXPAND)
+        	self.sizerf.Add(self.curvenote,1,wx.EXPAND)
+    		self.SetSizer(self.sizerf)
     		print 'yo'
 		
 	def updategraph(self,e):
 		gr=self.save()
+        	gr.dx=(gr.maxx-gr.minx)/(gr.x2-gr.x4)
+                print gr.maxx.__class__.__name__
+        	gr.dy=(gr.maxy-gr.miny)/(gr.y2-gr.y4)
 		gr.fillData()
 		self.mainframe.RefreshTree()
 		# self.mainframe.docnote.SetSelection(gr.document.docid)
