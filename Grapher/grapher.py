@@ -117,8 +117,8 @@ class MainWindow(wx.Frame):
         dlg.Destroy() # finally destroy it when finished.
     def crop(self,page,rect):
         cropimage=page.pdfImage[rect[1]:rect[3],rect[0]:rect[2]]
-        plt.imshow(cropimage)
-        plt.show()
+        #plt.imshow(cropimage)
+        #plt.show()
         newg=graph(page.document,page.pageno,rect[2],rect[0],rect[3],rect[1],page.pdfImage,cropimage)
         newg.fillData()
         print rect
