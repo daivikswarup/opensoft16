@@ -116,8 +116,8 @@ class MainWindow(wx.Frame):
         dlg.ShowModal() # Shows it
         dlg.Destroy() # finally destroy it when finished.
     def crop(self,page,rect):
-        cropimage=page.pdfImage[rect[1]:rect[3]][rect[0]:rect[2]]
-        plt.imshow(image)
+        cropimage=page.pdfImage[rect[1]:rect[3],rect[0]:rect[2]]
+        plt.imshow(cropimage)
         plt.show()
         newg=graph(page.document,page.pageno,rect[2],rect[0],rect[3],rect[1],page.pdfImage,cropimage)
         newg.fillData()
@@ -210,6 +210,8 @@ class MainWindow(wx.Frame):
                     currentgraph=self.tree_ctrl.AppendItem(currentpage,"Graph_"+str(cntgraph))
                     self.tree_ctrl.SetItemPyData(currentgraph, gr)
                     cntcurve=0
+                    print '____________________________________________________________________'
+                    print len(gr.curveList)
                     for curve in gr.curveList:
                         curve.graph=cntgraph
                         curve.curveid=cntcurve
